@@ -1,0 +1,21 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Robert Wood",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^16.0.0",
+    "fs": "^0.0.1-security",
+    "opusscript": "^0.0.8",
+    "play-dl": "^1.8.8",
+    "yt-search": "^2.10.3",
+    "ytdl-core": "^4.10.1",
+    "ytsearch": "^1.0.4"
+  }
+}
