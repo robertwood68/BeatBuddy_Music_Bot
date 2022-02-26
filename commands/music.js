@@ -1,14 +1,26 @@
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
+//const ytpl = require('ytpl');
 const queue = new Map();
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
+ * 
+ * Known Bugs: Crashes if user tries to play a playlist.
+ * 
+ * Later Features:
+ *      Commands:
+ *          //queue to output the name and artist of each song in the queue as a numbered list.
+ *          //play takes and plays urls of a playlist, along with soundcloud and spotify support.
+ *          //shuffle to shuffle the queue created.
+ *          //songInfo to output the information of the current song (artist, title, length).
+ *      Permissions:
+ *          - add the use of permissions to ensure that nobody runs into errors using the bot.
  * 
  * @author Robert Wood
  */
 module.exports = {
     name: 'play',
-    aliases: ['skip', 'pause', 'resume', 'leave', 'join', 'stop'],
+    aliases: ['p', 'skip', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -16,15 +28,15 @@ module.exports = {
         const voiceChannel = message.member.voice.channel;
         // create the queue
         const serverQueue = queue.get(message.guild.id);
-        // create a variable for the permissions
-        // const permissions = voiceChannel.permissions(message.client.user);
 
         // FailCases:
         if (!voiceChannel) {
             console.log('Nobody in the voice channel');
             return message.channel.send("You need to enter a voice channel before I can play any music for you");
         }
-        // PERMISSIONS ARE ONT NECCESSARY FOR THE PROTOTYPE
+        // // PERMISSIONS ARE NOT NECCESSARY FOR THE PROTOTYPE
+        // // create a variable for the permissions
+        // const permissions = voiceChannel.permissions(message.client.user);
         // // if the bot does not have specific permissions
         // if (!permissions.has('CONNECT')){
         //     return message.channel.send('You do not have connection permissions enabled for me');
@@ -33,10 +45,17 @@ module.exports = {
         //     return message.channel.send('You do not have speaking permissions enabled for me');
         // }
 
-        if (cmd === 'play') {
+        if (cmd === 'play' || cmd == 'p') {
             if (!args.length) return message.channel.send('After "//play", give me something to play');
             // create song object to put in the map
             let song = {};
+
+            // // This will provide support for playing music playlists.  **NOT INCLUDED IN THE PROTOTYPE**
+            // let playlist = {};
+            // if (ytpl.validateURL(args[0])) {
+            //     const playlistInfo = await ytpl.getInfo(args[0]);
+            //     playlist = { title: playlistInfo.videoDetails.title, url: playlistInfo.videoDetails.video_url}
+            // }
 
             // if the requestes song is a url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
@@ -89,13 +108,13 @@ module.exports = {
             }
         } else if (cmd === 'join') {
             joinChannel(message, message.guild);
-        } else if (cmd === 'skip') {
+        } else if (cmd === 'skip' || cmd === 'next') {
             skipSong(message, serverQueue);
         } else if (cmd === "pause"){
             pauseSong(message, serverQueue);
-        } else if (cmd === "resume"){
+        } else if (cmd === "resume" || cmd === "unpause"){
             resumeSong(message, serverQueue);
-        } else if (cmd === 'leave') {
+        } else if (cmd === 'leave' || cmd === 'stop') {
             leaveChannel(message, serverQueue);
         } 
     }
@@ -155,7 +174,11 @@ const skipSong = (message, serverQueue) => {
     }
     message.channel.send("Skipping the current song...");
     // end the dispatcher to skip the song currently playing
-    serverQueue.connection.dispatcher.end();
+    try {
+        serverQueue.connection.dispatcher.end();
+    } catch (err) {
+        message.channel.send("An error occured while trying to execute the command.")
+    }
 }
 
 /**
@@ -176,6 +199,8 @@ const skipSong = (message, serverQueue) => {
 
 /**
  * Handles the resume statement as its own function becuase of the connection.dispatcher.resume() is buggy in the newest version of node.js.
+ * 
+ * FULLY FUNCTIONAL
  */
  const uglyResumeMethod = (serverQueue) => {
     // In order to have one command, the order of commands must be exactly this --> pause, resume, resume, pause, resume, resume.
@@ -220,17 +245,21 @@ const leaveChannel = (message, serverQueue) => {
         // ends dispatcher to disconnect from channel after emptying the queue
         if (serverQueue.connection.dispatcher) {
             serverQueue.connection.dispatcher.end();
+            message.channel.send("Left the voice channel and cleared the queue.")
+        } else {
+            userVoiceChannel.leave();
+            message.channel.send("Left the voice channel.")
         }
         return;
     }
     userVoiceChannel.leave();
-    message.channel.send("Leaving the voice channel")
+    message.channel.send("Left the voice channel.")
 }
 
 /**
  * Outputs each item in the queue.
  * 
- * ***** This is a half progress Feature *****
+ * ***** NOT INCLUDED IN THE PROTOTYPE *****
  */
 const getQueue = () => {
 //     case 'queue' :

@@ -18,7 +18,7 @@ module.exports = {
         // if the user tries to delete less than 1 message
         if (args[0] < 1) return message.reply("You have to delete at least 1 message, dawg.");
         // if no other failcases apply, delete the specified number of messages from the channel
-        message.channel.bulkDelete(args[0]);
+        message.channel.bulkDelete(args[0], true);
         console.log("Messages deleted")
     }
 }
