@@ -1,5 +1,4 @@
 const ytdl = require('ytdl-core');
-const playdl = require('play-dl');
 const ytSearch = require('yt-search');
 const queue = new Map();
 /**
@@ -78,7 +77,7 @@ module.exports = {
                 try {
                     const connection = await voiceChannel.join();
                     queueConstructor.connection = connection;
-                    videoPlayer(message.guild, queueConstructor.songs[0]);
+                    videoPlayer(message.guild, queueConstructor.songs[0], message);
                 } catch {
                     queue.delete(message.guild.id);
                     message.channel.send("There was an error connecting");
@@ -88,15 +87,17 @@ module.exports = {
                 serverQueue.songs.push(song);
                 return message.channel.send(` ${song.title} has been added to the queue`);
             }
+        } else if (cmd === 'join') {
+            joinChannel(message, message.guild);
         } else if (cmd === 'skip') {
             skipSong(message, serverQueue);
-        } else if (cmd === 'leave') {
-            leaveChannel(message, serverQueue);
         } else if (cmd === "pause"){
             pauseSong(message, serverQueue);
         } else if (cmd === "resume"){
             resumeSong(message, serverQueue);
-        }
+        } else if (cmd === 'leave') {
+            leaveChannel(message, serverQueue);
+        } 
     }
 }
 
@@ -111,13 +112,14 @@ const videoPlayer = async (guild, song) => {
     const songQueue = queue.get(guild.id);
 
     if (!song) {
+        songQueue.text_channel.send("No more songs in the queue.  Left the channel.");
         songQueue.voice_channel.leave();
         queue.delete(guild.id);
         return;
     }
 
-    const stream = ytdl(song.url, { filter: 'audioonly'});
-    songQueue.connection.play(stream, { seek: 0, volume: 0.5}) // highWaterMark fixed the lag and the random dispacher stopping
+    const stream = ytdl(song.url, { filter: 'audioonly', highWaterMark: 1<<25}); // highWaterMark fixed the lag and the random dispacher stopping
+    songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
     .on('finish', () => {
         songQueue.songs.shift();
         videoPlayer(guild, songQueue.songs[0]);
@@ -125,19 +127,19 @@ const videoPlayer = async (guild, song) => {
     await songQueue.text_channel.send(` Now playing ${song.title}`);
 }
 
-// /**
-//  * Joins the user's voice channel without playing any music
-//  * 
-//  * FULLY FUNCTIONAL
-//  * 
-//  * @returns 
-//  */
-// const joinChannel = async (message, guild) => {
-//     const songQueue = queue.get(guild.id);
-//     message.channel.send("Joining the channel");
-//     songQueue.voice_channel.join();
-//     return;
-// }
+/**
+ * Joins the user's voice channel without playing any music
+ * 
+ * FULLY FUNCTIONAL
+ *
+ * @returns an error message if the bot is already in a voice channel.
+ */
+ const joinChannel = async (message, guild) => {
+    const songQueue = queue.get(guild.id);
+    if (songQueue) return message.channel.send("Already in the voice channel");
+    message.channel.send("Joining the channel");
+    message.member.voice.channel.join();
+}
 
 /**
  * Skips from the current song to the next if the command requested is //skip
@@ -157,34 +159,11 @@ const skipSong = (message, serverQueue) => {
 }
 
 /**
- * Stops the videoplayer if the command requested is //stop
- * 
- * FULLY FUNCTIONAL
- * 
- * @returns an arror message or leaves the channel
- */
-const leaveChannel = (message, serverQueue) => {
-    if (!message.member.voice.channel) return message.channel.send("Must be in the voice channel to leave it");
-    if (serverQueue) {
-        message.channel.send("Ending the queue and leaving the channel...");
-        // empties the queue
-        serverQueue.songs = [];
-        // ends dispatcher to disconnect from channel after emptying the queue
-        if (serverQueue.connection.dispatcher) {
-            serverQueue.connection.dispatcher.end();
-        }
-        message.channel.send("Queue emptied and voice channel left.");
-    } else {
-        return message.channel.send("There's nothing to stop");
-    }
-}
-
-/**
  * Pauses the song if the command requested if //pause
  * 
  * FULLY FUNCTIONAL
  */
-const pauseSong = (message, serverQueue) => {
+ const pauseSong = (message, serverQueue) => {
     if (!serverQueue) return message.channel.send("Nothing to pause");
     if (serverQueue.connection.dispatcher.paused) return message.channel.send("Song is already paused!"); // Checks if the song is already paused.
     // Sends a message to the channel the command was used in while trying to pause
@@ -196,21 +175,9 @@ const pauseSong = (message, serverQueue) => {
 }
 
 /**
- * Unpauses the song if the command requested if //resume
- * 
- * FULLY FUNCTIONAL
- */
- const resumeSong = (message, serverQueue) => {
-    if(!serverQueue) return message.channel.send("Nothing to unpause");
-    message.channel.send("Attemping to resume the song...")
-    fuckedUpResume(serverQueue); // If the song is paused this will unpause it.
-    message.channel.send("Song resumed!"); // Sends a message to the channel the command was used in after it unpauses.
-}
-
-/**
  * Handles the resume statement as its own function becuase of the connection.dispatcher.resume() is buggy in the newest version of node.js.
  */
-const fuckedUpResume = (serverQueue) => {
+ const uglyResumeMethod = (serverQueue) => {
     // In order to have one command, the order of commands must be exactly this --> pause, resume, resume, pause, resume, resume.
     serverQueue.connection.dispatcher.pause(true);
     serverQueue.connection.dispatcher.resume();
@@ -222,4 +189,64 @@ const fuckedUpResume = (serverQueue) => {
     // discord.js has a very buggy version of dispatcher.resume().  By using these 
     // statements, the users only need to command //resume once to unpause the song
     // instead of twice.
+}
+
+/**
+ * Unpauses the song if the command requested if //resume
+ * 
+ * FULLY FUNCTIONAL
+ */
+ const resumeSong = (message, serverQueue) => {
+    if(!serverQueue) return message.channel.send("Nothing to unpause");
+    message.channel.send("Attemping to resume the song...")
+    uglyResumeMethod(serverQueue); // If the song is paused this will unpause it.
+    message.channel.send("Song resumed!"); // Sends a message to the channel the command was used in after it unpauses.
+}
+
+/**
+ * Stops the videoplayer if the command requested is //stop
+ * 
+ * FULLY FUNCTIONAL
+ * 
+ * @returns an arror message or leaves the channel
+ */
+const leaveChannel = (message, serverQueue) => {
+    const userVoiceChannel = message.member.voice.channel;
+    if (!userVoiceChannel) return message.channel.send("I can't leave a channel if I'm not in one");
+    if (serverQueue) {
+        message.channel.send("Ending the queue and leaving the channel...");
+        // empties the queue
+        serverQueue.songs = [];
+        // ends dispatcher to disconnect from channel after emptying the queue
+        if (serverQueue.connection.dispatcher) {
+            serverQueue.connection.dispatcher.end();
+        }
+        return;
+    }
+    userVoiceChannel.leave();
+    message.channel.send("Leaving the voice channel")
+}
+
+/**
+ * Outputs each item in the queue.
+ * 
+ * ***** This is a half progress Feature *****
+ */
+const getQueue = () => {
+//     case 'queue' :
+//         var server = servers[message.guild.id];
+//         if (message.member.voice.channel) {
+//             for (var i = 0; i < server.queue.length; i++) {
+//                 if (i === 0) {
+//                     message.channel.send("Current Track: " + server.queue[0]);
+//                 } else if (i > 0) {
+//                     message.channel.send("Next Track:" + server.queue[i]);
+//                 }
+//             }
+//         } else if (!message.member.voice.channel) {
+//             message.reply("Make sure you join a voice channel first");
+//         } else if (!message.guild.voice.connection) {
+//             message.reply("Ask me to play something first");
+//         }
+//     break;
 }
