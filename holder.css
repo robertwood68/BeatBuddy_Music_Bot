@@ -1,0 +1,39 @@
+
+#content {
+    float: left;
+    width: 540px;
+    padding: 10px;
+}
+#sidebar {
+    float: left;
+    width: 240px;
+    border-style: solid;
+    border-color: darkblue;
+    border-width: 2px;
+    padding: 10px;
+}
+.header {
+color: darkblue;
+font-size: 20px;
+border-bottom: 2px solid darkblue
+}
+
+
+
+
+
+.fa {
+padding: 10px;
+font-size: 20px;
+width: 30px;
+text-align: center;
+margin: 3px 2px;
+border-radius: 50%;
+}
+.fa:hover {
+opacity: 0.7;
+}
+.fa-linkedin {
+background: #007bb5;
+color: white;
+}

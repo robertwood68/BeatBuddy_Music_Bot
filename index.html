@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+    <!-- head elements -->
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, inital-scale=1.0">
+        <title>BeatBuddy - Discord Music Bot</title>
+        <!-- link to button stylesheet for LinkedIn redirect button -->
+        <link href="StyleSheet.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <!-- navigation bar at top of page -->
+    <nav>
+        <div class="logo">BeatBuddy</div>
+        <a href="mailto: l.robertwood@gmail.com">Contact</a>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=931667415912296478&permissions=8&scope=bot">Invite To Server</a>
+        <a href="https://cash.app/$Robwoodd">Donate</a>
+    </nav>
+
+    <!-- body layout and design -->
+    <body>
+        <div id="about">
+            <h1 class="header">About BeatBuddy</h1>
+            <p class="paragraph"> 
+                BeatBuddy is a Discord bot that provides music from YouTube to your voice channels.
+            </p>
+            <p class="paragraph"> 
+                Originally developed in <a href="https://www.python.org/">Python</a> as a simple, partially-functional bot in December of 2021, the bot was torn down and built from the 
+                ground up using <a href = "https://nodejs.org/en/">Node.js</a> and <a href="https://discord.js.org/#/">Discord.js</a> throughout February of 2022.
+            </p>
+            <p class="paragraph">
+                At this time, BeatBuddy is locally hosted and has a handful of both general commands and music related commands.  However, futher development will be taking place in the 
+                near future in order to add:
+            </p>
+            <ul class="ul">
+                <li>24/7 Bot Activity</li>
+                <li>Playlist and LiveStream Support</li>
+                <li>Spotify and SoundCloud Support</li>
+                <li>More specific and in depth commands</li>
+                <li>Permissions Checking</li>
+                <li>Roles Assignment</li>
+            </ul>
+            <p class="paragraph">So stay tuned for updates on the site and enjoy your time with BeatBuddy!</p>
+        </div>
+        <div id="commands">
+            <h1 class="header">List of Commands</h1>
+            <p class="commparagraph">The prefix for each command is "//"<br>Example:</p>
+            <p class="paragraph">User: //ping <br>BeatBuddy: pong</p> 
+            <p class="commparagraph">General Commands:</p>
+            <ul class="ul">
+                <li>ping -- Responds with "pong"</li>
+                <li>hello (aliases: hey, hi) -- Reply's with "Hey ..." to the user who sent the command</li>
+                <li>clear int (aliases: delete, del) -- Clears the specified integer of messages up to 14 days old</li>
+                <li>help -- sends a list of all available commands </li>
+            </ul>
+            <p class="commparagraph">Music Related Commands:</p>
+            <ul class="ul">
+                <li>play [search or url] (aliases: p) -- Plays the requested song in the voice channel if nothing else is playing, otherwise adds the song to the queue</li>
+                <li>skip (aliases: next) -- Skips to the next song in the queue</li>
+                <li>pause -- Pauses the current song</li>
+                <li>resume (aliases: unpause) -- Resumes the song if paused</li>
+                <li>join -- Joins the voice channel without audio until the play command is invoked</li>
+                <li>leave (aliases: stop) -- Leaves the voice channel and clears the song queue</li>
+            </ul>
+        </div>
+        <div id="invite">
+            
+        </div>
+
+        <script src="index.js"></script>
+        <noscript>You need to enable JavaScript to view the full site.</noscript>
+    </body>
+</html>
