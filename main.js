@@ -1,6 +1,13 @@
 /**
  * Main class for BeatBuddy Music Bot.
  * 
+ * Milestone 1: Completed
+ *      Base prototype, functional commands, base website
+ * Milestone 2: 
+ *      Add playlist support and host bot and site through AWS
+ * Milestone 3: 
+ *      Add queue, song info, shuffle commands.  Also add "premium" features.
+ * 
  * @author Robert Wood
  */
 

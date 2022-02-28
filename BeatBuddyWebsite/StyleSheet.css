@@ -41,9 +41,9 @@ nav div {
     font-family: Arial, Helvetica, sans-serif;
 }
 nav div:hover{
-    background: rgb(132, 0, 233);
-    color: rgb(255, 255, 255);
-    opacity: 0.7;
+    background: rgb(79, 0, 140);
+    color: rgba(221, 221, 221, 0.884);
+    opacity: 1;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 32px;
 }
