@@ -4,15 +4,17 @@
  * Milestone 1: Completed
  *      Base prototype, functional commands, base website
  * Milestone 2: 
+ *      MAIN FOCUS SHOULD BE THIS
  *      Add playlist support and host bot and site through AWS
  * Milestone 3: 
- *      Add queue, song info, shuffle commands.  Also add "premium" features.
+ *      Add queue (DONE), song info (DONE), shuffle commands.  Also add "premium" features.
  * 
  * @author Robert Wood
  */
 
 // require discord.js from the start for use later in the program
 const Discord = require('discord.js');
+
 // require dotenv to secure the bot token
 require('dotenv').config();
 

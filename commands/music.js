@@ -9,10 +9,10 @@ const queue = new Map();
  * 
  * Later Features:
  *      Commands:
- *          //queue to output the name and artist of each song in the queue as a numbered list.
+ *          //queue UPDATE IN HELP AND WEBSITE
  *          //play takes and plays urls of a playlist, along with soundcloud and spotify support.
  *          //shuffle to shuffle the queue created.
- *          //songInfo to output the information of the current song (artist, title, length).
+ *          //songInfo UPDATE IN HELP AND WEBSITE
  *      Permissions:
  *          - add the use of permissions to ensure that nobody runs into errors using the bot.
  * 
@@ -20,7 +20,7 @@ const queue = new Map();
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join'],
+    aliases: ['p', 'skip', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -60,7 +60,7 @@ module.exports = {
             // if the requestes song is a url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
                 const songInfo = await ytdl.getInfo(args[0]);
-                song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url}
+                song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate}
             } else {
                 // if the song is not a URL, then use keywords to find that song on youtube.
                 const videoFinder = async (query) => {
@@ -71,7 +71,7 @@ module.exports = {
                 // add the info pulled from youtube to the song variable
                 const video = await videoFinder(args.join(' '));
                 if (video) {
-                    song = { title: video.title, url: video.url}
+                    song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "N/A"}
                 } else {
                     // if no results, send error message
                     message.channel.send("Couldn't find the requested song");
@@ -116,7 +116,11 @@ module.exports = {
             resumeSong(message, serverQueue);
         } else if (cmd === 'leave' || cmd === 'stop') {
             leaveChannel(message, serverQueue);
-        } 
+        } else if (cmd === 'queue' || cmd === 'q') {
+            getQueue(message, message.guild);
+        } else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') {
+            songInfo(message, message.guild);
+        }
     }
 }
 
@@ -259,23 +263,47 @@ const leaveChannel = (message, serverQueue) => {
 /**
  * Outputs each item in the queue.
  * 
- * ***** NOT INCLUDED IN THE PROTOTYPE *****
+ * Milestone 2: FULLY FUNCTIONAL
  */
-const getQueue = () => {
-//     case 'queue' :
-//         var server = servers[message.guild.id];
-//         if (message.member.voice.channel) {
-//             for (var i = 0; i < server.queue.length; i++) {
-//                 if (i === 0) {
-//                     message.channel.send("Current Track: " + server.queue[0]);
-//                 } else if (i > 0) {
-//                     message.channel.send("Next Track:" + server.queue[i]);
-//                 }
-//             }
-//         } else if (!message.member.voice.channel) {
-//             message.reply("Make sure you join a voice channel first");
-//         } else if (!message.guild.voice.connection) {
-//             message.reply("Ask me to play something first");
-//         }
-//     break;
+const getQueue = (message, guild) => {
+    const songQueue = queue.get(guild.id);
+
+    // checks if queue doesn't exist
+    if (!songQueue) {
+        message.channel.send("No songs in the queue");
+        return;
+    }
+    
+    // loops through song queue and outputs track numbers and names accordingly
+    for (i = 0; i < songQueue.songs.length; i++) {
+        if (i === 0) {
+            // currently playing
+            message.channel.send("Current track (0): " + songQueue.songs[0].title);
+        } else {
+            // anything after
+            message.channel.send("Track (" + i + "): " + songQueue.songs[i].title);
+        }
+    }
+}
+
+/**
+ * Outputs song info for the current track
+ * 
+ * Milestone 2: FULLY FUNCTIONAL
+ */
+const songInfo = (message, guild) => {
+    const songQueue = queue.get(guild.id);
+    
+    // check if song queue doesn't exist
+    if (!songQueue) {
+        message.channel.send("No songs in the queue");
+        return;
+    }
+
+    // Works correctly
+    const title = songQueue.songs[0].title;
+    const artist = songQueue.songs[0].artist;
+    const time = songQueue.songs[0].time;
+    const date = songQueue.songs[0].date;
+    message.channel.send("Title: " + title + "\nArtist: " + artist + "\nLength: " + time + "\nDate: " + date);
 }
