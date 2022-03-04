@@ -20,7 +20,7 @@ const queue = new Map();
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i'],
+    aliases: ['p', 'skip', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -120,6 +120,8 @@ module.exports = {
             getQueue(message, message.guild);
         } else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') {
             songInfo(message, message.guild);
+        } else if (cmd === 'shuffle') {
+            shuffle(message, message.guild);
         }
     }
 }
@@ -263,7 +265,7 @@ const leaveChannel = (message, serverQueue) => {
 /**
  * Outputs each item in the queue.
  * 
- * Milestone 2: FULLY FUNCTIONAL
+ * Milestone 3: FULLY FUNCTIONAL
  */
 const getQueue = (message, guild) => {
     const songQueue = queue.get(guild.id);
@@ -289,7 +291,7 @@ const getQueue = (message, guild) => {
 /**
  * Outputs song info for the current track
  * 
- * Milestone 2: FULLY FUNCTIONAL
+ * Milestone 3: FULLY FUNCTIONAL
  */
 const songInfo = (message, guild) => {
     const songQueue = queue.get(guild.id);
@@ -306,4 +308,50 @@ const songInfo = (message, guild) => {
     const time = songQueue.songs[0].time;
     const date = songQueue.songs[0].date;
     message.channel.send("Title: " + title + "\nArtist: " + artist + "\nLength: " + time + "\nDate: " + date);
+}
+
+/**
+ * Shuffles the song queue
+ * 
+ * MILESTONE 3: FULLY FUNCTIONAL
+ * 
+ * @returns null
+ */
+const shuffle = (message, guild) => {
+    const songQueue = queue.get(guild.id);
+
+    // check is song queue doesn't exist
+    if (!songQueue) {
+        message.channel.send("There are no songs to shuffle");
+        return;
+    }
+
+    // if only song in queue is playing
+    if (songQueue.songs.length === 1) {
+        message.channel.send("Error: No songs in the queue");
+        return;
+    } 
+    
+    // if one song is playing and there is only one in the queue
+    if (songQueue.songs.length === 2) {
+        message.channel.send("Error: One song playing and one in the queue");
+        return;
+    } 
+    
+    // if queue exists and more than one song is in the queue
+    for (let i = songQueue.songs.length - 1; i > 0; i--) {
+        // create element to switch the one at i with
+        const j = Math.floor(Math.random() * (i + 1));
+        // prevents the switching of the song currently playing
+        if (j == 0) {
+            // create variable k for element 1
+            const k = j + 1;
+            // switch elements at i and k
+            [songQueue.songs[i], songQueue.songs[k]] = [songQueue.songs[k], songQueue.songs[i]];
+        } else {
+            // switch elements at i and j
+            [songQueue.songs[i], songQueue.songs[j]] = [songQueue.songs[j], songQueue.songs[i]];
+        }
+    }
+    return message.channel.send("Queue shuffled");
 }

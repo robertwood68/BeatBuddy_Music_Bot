@@ -7,7 +7,7 @@
  *      MAIN FOCUS SHOULD BE THIS
  *      Add playlist support and host bot and site through AWS
  * Milestone 3: 
- *      Add queue (DONE), song info (DONE), shuffle commands.  Also add "premium" features.
+ *      Add queue (DONE), song info (DONE), shuffle (DONE) commands.  Also add "premium" features.
  * 
  * @author Robert Wood
  */
