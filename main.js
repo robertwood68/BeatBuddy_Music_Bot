@@ -4,10 +4,11 @@
  * Milestone 1: Completed
  *      Base prototype, functional commands, base website
  * Milestone 2: 
- *      MAIN FOCUS SHOULD BE THIS
- *      Add playlist support (DONE) and host bot and site through AWS
+ *      Add playlist support (DONE)
+ *      Host bot and site through AWS ()
  * Milestone 3: 
- *      Add queue (DONE), song info (DONE), shuffle (DONE) commands.  Also add "premium" features.
+ *      Add queue (DONE), song info (DONE), shuffle (DONE) commands (COMPLETE)
+ *      Add Spotify and SoundCloud Support to the music commands ()
  * 
  * @author Robert Wood
  */
