@@ -7,14 +7,11 @@ const queue = new Map();
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
  * 
- * Known Bugs: Crashes if user tries to play a playlist.
+ * Known Bugs: Crashes if user tries to play a link from anywhere but youtube.
  * 
  * Later Features:
  *      Commands:
- *          //queue UPDATE IN WEBSITE
- *          //play takes and plays urls of a playlist, along with soundcloud and spotify support.
- *          //shuffle to shuffle the queue created. UPDATE IN WEBSITE
- *          //songInfo UPDATE IN WEBSITE
+ *          // add soundcloud and spotify support.
  *      Permissions:
  *          - add the use of permissions to ensure that nobody runs into errors using the bot.
  * 

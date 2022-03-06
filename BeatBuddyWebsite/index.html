@@ -39,7 +39,6 @@
             </p>
             <ul class="ul">
                 <li>24/7 Bot Activity</li>
-                <li>Playlist and LiveStream Support</li>
                 <li>Spotify and SoundCloud Support</li>
                 <li>More specific and in depth commands</li>
                 <li>Permissions Checking</li>
@@ -55,16 +54,19 @@
             <p class="leftparagraph">General Commands:</p>
             <ul class="ul">
                 <li>ping -- Responds with "pong"</li>
-                <li>hello (aliases: hey, hi) -- Reply's with "Hey ..." to the user who sent the command</li>
+                <li>hello (aliases: hey, hi) -- Replies with "Hey ..." to the user who sent the command</li>
                 <li>clear int (aliases: delete, del) -- Clears the specified integer of messages up to 14 days old</li>
-                <li>help -- sends a list of all available commands </li>
+                <li>help -- Sends a list of available commands, disclaimers, and warnings</li>
             </ul>
             <p class="leftparagraph">Music Related Commands:</p>
             <ul class="ul">
-                <li>play [search or url] (aliases: p) -- Plays the requested song in the voice channel if nothing else is playing, otherwise adds the song to the queue</li>
+                <li>play [search or url] (aliases: p) -- Plays the requested song or playlist in the voice channel if nothing else is playing, otherwise adds the song or playlist to the queue</li>
                 <li>skip (aliases: next) -- Skips to the next song in the queue</li>
                 <li>pause -- Pauses the current song</li>
                 <li>resume (aliases: unpause) -- Resumes the song if paused</li>
+                <li>queue (aliases: q) -- Outputs the track number and title of each song in the queue</li>
+                <li>shuffle -- Shuffles the songs in the queue</li>
+                <li>songinfo (aliases: song, info) -- Outputs the title, artist, length, and date added of the currently playing song</li>
                 <li>join -- Joins the voice channel without audio until the play command is invoked</li>
                 <li>leave (aliases: stop) -- Leaves the voice channel and clears the song queue</li>
             </ul>
@@ -81,15 +83,12 @@
             </a>
             <p class="leftparagraph"><br><br><strong>WARNING:</strong></p>
             <p class="leftparagraph">
-                At this time, BeatBuddy can only process links for <strong>individual videos from YouTube</strong>.  If
-                a YouTube <strong>playlist</strong>, <strong>Spotify link</strong>, or <strong>SoundCloud link</strong>
-                is requested through the play command, the bot will try to play the song and crash, making itself
-                unusable.
+                At this time, BeatBuddy can only process YouTube links for <strong>individual videos</strong> and <strong>playlists</strong>, <strong>NOT mixes</strong>.<br><br>If a link from <strong>any other audio provider (SoundCloud, Spotify, Twitch, etc.)</strong> or a <strong>YouTube Mix</strong> is requested through the play command, the bot will try to play the audio and crash, making itself unusable.
             </p>
             <p class="paragraph">
-                <strong>DO NOT REQUEST PLAYLISTS OR ANY OTHER AUDIO PROVIDER LINKS BESIDES YOUTUBE.</strong>
+                <strong>DO NOT REQUEST LINKS FROM ANY OTHER AUDIO PROVIDER BESIDES YOUTUBE, AND DO NOT REQUEST YOUTUBE MIXES.<strong>
             </p>
-            <p class="creditline"><br>Developer: Robert Wood, <a href="mailto:l.robertwood@gmail.com">L.robertwood@gmail.com</a>, <a href="mailto:rwood7@ycp.edu">rwood7@ycp.edu</a>, 2022.</p>
+            <p class="creditline"><br>Developer: Robert Wood, <a href="mailto:l.robertwood@gmail.com">L.robertwood@gmail.com</a>, <a href="mailto:rwood7@ycp.edu">rwood7@ycp.edu</a>.<br>Copyright &copy; 2022, b0bGuRt Industries. All Rights Reserved.</p>
         </div>
         <script src="index.js"></script>
         <noscript>You need to enable JavaScript to view the full site.</noscript>
