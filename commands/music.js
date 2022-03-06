@@ -71,7 +71,7 @@ module.exports = {
                     let plSong = (await playlist).items[vid];
 
                     // let song have the video's info
-                    let song = {title: plSong.title, url: plSong.url, artist: plSong.author.name, length: plSong.durationSec/60, date: "N/A"};
+                    let song = {title: plSong.title, url: plSong.url, artist: plSong.author.name, time: plSong.duration, date: (await playlist).lastUpdated};
 
                     // push the song to the videos array
                     videos.push(song);
@@ -88,10 +88,10 @@ module.exports = {
                 // add the info pulled from youtube to the song variable
                 const video = await videoFinder(args.join(' '));
                 if (video) {
-                    song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "N/A"}
+                    song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "Couldn't retrive date"}
                 } else {
                     // if no results, send error message
-                    message.channel.send("Couldn't find the requested song");
+                    message.channel.send("Couldn't find the requested song, try using a YouTube link after //play");
                     return;
                 }
             }
