@@ -5,7 +5,7 @@
  *      Base prototype, functional commands, base website
  * Milestone 2: 
  *      MAIN FOCUS SHOULD BE THIS
- *      Add playlist support and host bot and site through AWS
+ *      Add playlist support (DONE) and host bot and site through AWS
  * Milestone 3: 
  *      Add queue (DONE), song info (DONE), shuffle (DONE) commands.  Also add "premium" features.
  * 
