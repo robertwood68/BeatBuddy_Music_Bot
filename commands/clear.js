@@ -9,6 +9,12 @@ module.exports = {
     description: "Clears a specified amount of messages from the text channel",
     execute(message, args, cmd, client, Discord) {
         console.log('Attempting to delete messages...');
+        if (args[0] === 'all') {
+            message.channel.bulkDelete(100, true);
+            message.channel.bulkDelete(100, true);
+            message.channel.bulkDelete(100, true);
+            return;
+        }
         // if no number of messages is specified
         if (!args[0]) return message.reply("You wanna give me a number of messages to delete or what?");
         // if the user tries to clear a number of messages that isn't real

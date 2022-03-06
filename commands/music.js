@@ -1,7 +1,9 @@
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
-//const ytpl = require('ytpl');
+const ytpl = require('ytpl');
+const youtube = require('youtube');
 const queue = new Map();
+
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
  * 
@@ -9,10 +11,10 @@ const queue = new Map();
  * 
  * Later Features:
  *      Commands:
- *          //queue UPDATE IN HELP AND WEBSITE
+ *          //queue UPDATE IN WEBSITE
  *          //play takes and plays urls of a playlist, along with soundcloud and spotify support.
- *          //shuffle to shuffle the queue created.
- *          //songInfo UPDATE IN HELP AND WEBSITE
+ *          //shuffle to shuffle the queue created. UPDATE IN WEBSITE
+ *          //songInfo UPDATE IN WEBSITE
  *      Permissions:
  *          - add the use of permissions to ensure that nobody runs into errors using the bot.
  * 
@@ -46,22 +48,40 @@ module.exports = {
         // }
 
         if (cmd === 'play' || cmd == 'p') {
+            // check if no argument given
             if (!args.length) return message.channel.send('After "//play", give me something to play');
+
             // create song object to put in the map
             let song = {};
+        
+            // create videos array to hold each song from a playlist
+            let videos = [];
 
-            // // This will provide support for playing music playlists.  **NOT INCLUDED IN THE PROTOTYPE**
-            // let playlist = {};
-            // if (ytpl.validateURL(args[0])) {
-            //     const playlistInfo = await ytpl.getInfo(args[0]);
-            //     playlist = { title: playlistInfo.videoDetails.title, url: playlistInfo.videoDetails.video_url}
-            // }
-
-            // if the requestes song is a url, pull the song info from the link and set the details for the song
+            // if the requested song is a url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
+                console.log("Song")
                 const songInfo = await ytdl.getInfo(args[0]);
                 song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate}
-            } else {
+            } 
+            else if (ytpl.validateID(args[0])) {  // if link is a playlist
+                
+                // Create playlist collection
+                const playlist = ytpl(args[0]);
+                console.log("Got playlist");
+                // for each video in the playlist
+                for (vid in (await playlist).items) {
+                    // let plSong be the video
+                    let plSong = (await playlist).items[vid];
+
+                    // let song have the video's info
+                    let song = {title: plSong.title, url: plSong.url, artist: plSong.author.name, length: plSong.durationSec/60, date: "N/A"};
+
+                    // push the song to the videos array
+                    videos.push(song);
+                }
+                console.log("Added songs from playlist");
+            } 
+            else {
                 // if the song is not a URL, then use keywords to find that song on youtube.
                 const videoFinder = async (query) => {
                     const videoResult = await ytSearch(query);
@@ -90,9 +110,19 @@ module.exports = {
                 
                 // set values in the map as guild id number and queueConstructor
                 queue.set(message.guild.id, queueConstructor);
-                // push the song info obtained in the queue
+
+                // push the song item regardless
                 queueConstructor.songs.push(song);
-    
+
+                // push playlist items into queue if playlist is requested
+                if (ytpl.validateID(args[0])) {
+                    for (i = 0; i < videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                }
+
                 try {
                     const connection = await voiceChannel.join();
                     queueConstructor.connection = connection;
@@ -103,26 +133,35 @@ module.exports = {
                     throw err;
                 }
             } else {
+                // push song item regardless
                 serverQueue.songs.push(song);
+
+                // if playlist is added after the serverQueue has been made
+                if (ytpl.validateID(args[0])) {
+                    // get playlist name
+                    const playlistName = (await ytpl(args[0])).title;
+                    // get index of undefine push of song above for removal
+                    const elementToRemove = serverQueue.songs.length-1;
+                    // for each video, push it to the serverqueue
+                    for (i = 0; i < videos.length - 1; i++) {
+                        serverQueue.songs.push(videos[i]);
+                    }
+                    // remove the undefined song push from earlier
+                    serverQueue.songs.splice(elementToRemove, elementToRemove);
+                    // return a message saying which playlist was added
+                    return message.channel.send(` ${playlistName} has been added to the queue`);
+                }
                 return message.channel.send(` ${song.title} has been added to the queue`);
             }
-        } else if (cmd === 'join') {
-            joinChannel(message, message.guild);
-        } else if (cmd === 'skip' || cmd === 'next') {
-            skipSong(message, serverQueue);
-        } else if (cmd === "pause"){
-            pauseSong(message, serverQueue);
-        } else if (cmd === "resume" || cmd === "unpause"){
-            resumeSong(message, serverQueue);
-        } else if (cmd === 'leave' || cmd === 'stop') {
-            leaveChannel(message, serverQueue);
-        } else if (cmd === 'queue' || cmd === 'q') {
-            getQueue(message, message.guild);
-        } else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') {
-            songInfo(message, message.guild);
-        } else if (cmd === 'shuffle') {
-            shuffle(message, message.guild);
-        }
+        } 
+        else if (cmd === 'join') joinChannel(message, message.guild);
+        else if (cmd === 'skip' || cmd === 'next') skipSong(message, serverQueue);
+        else if (cmd === "pause") pauseSong(message, serverQueue);
+        else if (cmd === "resume" || cmd === "unpause") resumeSong(message, serverQueue);
+        else if (cmd === 'leave' || cmd === 'stop') leaveChannel(message, serverQueue);
+        else if (cmd === 'queue' || cmd === 'q') getQueue(message, message.guild);
+        else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild);
+        else if (cmd === 'shuffle') shuffle(message, message.guild);
     }
 }
 

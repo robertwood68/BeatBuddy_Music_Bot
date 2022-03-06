@@ -14,8 +14,9 @@
     "fs": "^0.0.1-security",
     "opusscript": "^0.0.8",
     "play-dl": "^1.8.8",
+    "youtube": "^0.1.0",
     "yt-search": "^2.10.3",
-    "ytdl-core": "^4.10.1",
+    "ytdl-core": "^4.11.0",
     "ytpl": "^2.2.3",
     "ytsearch": "^1.0.4"
   }
