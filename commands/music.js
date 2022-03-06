@@ -47,10 +47,10 @@ module.exports = {
         if (cmd === 'play' || cmd == 'p') {
             // check if no argument given
             if (!args.length) return message.channel.send('After "//play", give me something to play');
-
+        
             // create song object to put in the map
             let song = {};
-        
+
             // create videos array to hold each song from a playlist
             let videos = [];
 
@@ -92,6 +92,7 @@ module.exports = {
                 } else {
                     // if no results, send error message
                     message.channel.send("Couldn't find the requested song");
+                    return;
                 }
             }
 
@@ -110,7 +111,7 @@ module.exports = {
 
                 // push the song item regardless
                 queueConstructor.songs.push(song);
-
+                
                 // push playlist items into queue if playlist is requested
                 if (ytpl.validateID(args[0])) {
                     for (i = 0; i < videos.length - 1; i++) {
