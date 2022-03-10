@@ -1,7 +1,7 @@
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
 const ytpl = require('ytpl');
-const youtube = require('youtube');
+const Discord = require('discord.js');
 const queue = new Map();
 
 /**
@@ -58,7 +58,8 @@ module.exports = {
             if (ytdl.validateURL(args[0])) {
                 console.log("Song")
                 const songInfo = await ytdl.getInfo(args[0]);
-                song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate}
+                // set specific song information
+                song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate, thumbnail: songInfo.player_response.videoDetails.thumbnail.thumbnails[0].url, requester: message.author.username}
             } 
             else if (ytpl.validateID(args[0])) {  // if link is a playlist
                 
@@ -70,8 +71,8 @@ module.exports = {
                     // let plSong be the video
                     let plSong = (await playlist).items[vid];
 
-                    // let song have the video's info
-                    let song = {title: plSong.title, url: plSong.url, artist: plSong.author.name, time: plSong.duration, date: (await playlist).lastUpdated};
+                    // set specific song information
+                    let song = {title: plSong.title, url: plSong.url, artist: plSong.author.name, time: plSong.duration, date: (await playlist).lastUpdated, thumbnail: plSong.thumbnails[0].url, requester: message.author.username};
 
                     // push the song to the videos array
                     videos.push(song);
@@ -88,7 +89,8 @@ module.exports = {
                 // add the info pulled from youtube to the song variable
                 const video = await videoFinder(args.join(' '));
                 if (video) {
-                    song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "Couldn't retrive date"}
+                    // set specific song information
+                    song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "Couldn't retrive date", thumbnail: video.thumbnail, requester: message.author.username}
                 } else {
                     // if no results, send error message
                     message.channel.send("Couldn't find the requested song, try using a YouTube link after //play");
@@ -136,8 +138,12 @@ module.exports = {
 
                 // if playlist is added after the serverQueue has been made
                 if (ytpl.validateID(args[0])) {
+
                     // get playlist name
                     const playlistName = (await ytpl(args[0])).title;
+                    // set playlist thumbnail as server image
+                    const playlistThumbnail = message.guild.iconURL();
+
                     // get index of undefine push of song above for removal
                     const elementToRemove = serverQueue.songs.length-1;
                     // for each video, push it to the serverqueue
@@ -146,10 +152,29 @@ module.exports = {
                     }
                     // remove the undefined song push from earlier
                     serverQueue.songs.splice(elementToRemove, elementToRemove);
-                    // return a message saying which playlist was added
-                    return message.channel.send(` ${playlistName} has been added to the queue`);
+
+                    // string to set as description in embed
+                    let str = "";
+                    str += `**Playlist Added To Queue:**\n ${playlistName}`;
+                    // create embed show that the playlist was added to the queue
+                    const embed = new Discord.MessageEmbed()
+                        .setThumbnail(playlistThumbnail)
+                        .setDescription(str);
+
+                    // return a message embed saying which playlist was added to the queue
+                    return message.channel.send(embed);
                 }
-                return message.channel.send(` ${song.title} has been added to the queue`);
+                
+                // string to set as description in embed
+                let str = "";
+                str += `**Added to Queue:**\n ${song.title}`;
+                // create embed show that the song was added to the queue
+                const embed = new Discord.MessageEmbed()
+                    .setThumbnail(song.thumbnail)
+                    .setDescription(str);
+
+                // return a message embed saying which song was added to the queue
+                return message.channel.send(embed);
             }
         } 
         else if (cmd === 'join') joinChannel(message, message.guild);
@@ -174,7 +199,7 @@ const videoPlayer = async (guild, song) => {
     const songQueue = queue.get(guild.id);
 
     if (!song) {
-        songQueue.text_channel.send("No more songs in the queue.  Left the channel.");
+        songQueue.text_channel.send("No more songs in the queue.");
         songQueue.voice_channel.leave();
         queue.delete(guild.id);
         return;
@@ -186,7 +211,18 @@ const videoPlayer = async (guild, song) => {
         songQueue.songs.shift();
         videoPlayer(guild, songQueue.songs[0]);
     });
-    await songQueue.text_channel.send(` Now playing ${song.title}`);
+
+    // string to set as description in embed
+    let str = "";
+    str += `**Now Playing:**\n ${song.title}`;
+
+    // create embed to hold current song
+    const embed = new Discord.MessageEmbed()
+        .setThumbnail(song.thumbnail)
+        .setDescription(str);
+
+    // return now playing embed
+    await songQueue.text_channel.send(embed);
 }
 
 /**
@@ -282,27 +318,24 @@ const leaveChannel = (message, serverQueue) => {
     const userVoiceChannel = message.member.voice.channel;
     if (!userVoiceChannel) return message.channel.send("I can't leave a channel if I'm not in one");
     if (serverQueue) {
-        message.channel.send("Ending the queue and leaving the channel...");
         // empties the queue
         serverQueue.songs = [];
         // ends dispatcher to disconnect from channel after emptying the queue
         if (serverQueue.connection.dispatcher) {
             serverQueue.connection.dispatcher.end();
-            message.channel.send("Left the voice channel and cleared the queue.")
         } else {
             userVoiceChannel.leave();
-            message.channel.send("Left the voice channel.")
         }
-        return;
+        return message.channel.send("Left the voice channel.");
     }
     userVoiceChannel.leave();
     message.channel.send("Left the voice channel.")
 }
 
 /**
- * Outputs each item in the queue.
+ * Outputs the current song and the next ten songs following it as an embed.
  * 
- * Milestone 3: FULLY FUNCTIONAL
+ * Milestone 3: FULLY FUNCTIONAL 
  */
 const getQueue = (message, guild) => {
     const songQueue = queue.get(guild.id);
@@ -312,17 +345,25 @@ const getQueue = (message, guild) => {
         message.channel.send("No songs in the queue");
         return;
     }
-    
-    // loops through song queue and outputs track numbers and names accordingly
-    for (i = 0; i < songQueue.songs.length; i++) {
-        if (i === 0) {
-            // currently playing
-            message.channel.send("Current track (0): " + songQueue.songs[0].title);
-        } else {
-            // anything after
-            message.channel.send("Track (" + i + "): " + songQueue.songs[i].title);
-        }
-    }
+
+    let index = 1;
+    let str = "";
+
+    // for the song currently playing
+    if (songQueue.songs[0]) str += `**Currently playing:**\n ${songQueue.songs[0].title}\n\n`;
+
+    // for next ten songs after the first one
+    if (songQueue.songs[1]) str += `**Next Songs In Queue:**\n ${songQueue.songs.slice(1, 11).map(x => `**${index++})** ${x.title}\n Requested by: **${x.requester}**`).join("\n\n")}`;
+
+
+    // create embed to hold current song plus the next ten after it
+    const embed = new Discord.MessageEmbed()
+        .setAuthor(`${message.guild.name}'s Queue`)
+        .setThumbnail(songQueue.songs[0].thumbnail)
+        .setDescription(str);
+
+    // return a message embed containing the queue
+    return message.channel.send(embed);
 }
 
 /**
