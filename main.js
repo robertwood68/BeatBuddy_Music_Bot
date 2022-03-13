@@ -22,6 +22,7 @@ require('dotenv').config();
 // create an instance of the discord client
 const client = new Discord.Client();
 
+
 // creates a new collection to hold the commands
 client.commands = new Discord.Collection();
 client.events = new Discord.Collection();

@@ -44,6 +44,12 @@ module.exports = {
             ch.send(embed1);
             ch.send(embed2);
             ch.send(embed3);
+
+            // code to easily change the bots avatar.  Image must be in the top level of the project.
+            /*
+            client.user.setAvatar('BB.JPG');
+            console.log(client.user.setAvatar('BB.JPG'));
+            */
         }
     }
 }
