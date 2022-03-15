@@ -385,7 +385,15 @@ const songInfo = (message, guild) => {
     const artist = songQueue.songs[0].artist;
     const time = songQueue.songs[0].time;
     const date = songQueue.songs[0].date;
-    message.channel.send("Title: " + title + "\nArtist: " + artist + "\nLength: " + time + "\nDate: " + date);
+
+    // create embed to hold current song plus the next ten after it
+    const embed = new Discord.MessageEmbed()
+        .setAuthor(title)
+        .setThumbnail(songQueue.songs[0].thumbnail)
+        .setDescription("**Artist:** " + artist + "\n**Length:** " + time + "\n**Date Published:** " + date);
+
+    // return a message embed containing the queue
+    return message.channel.send(embed);
 }
 
 /**
