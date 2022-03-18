@@ -33,6 +33,14 @@ for(const handler of handlers){
     require(`./handlers/${handler}`)(client, Discord);
 };
 
+// sets the activity of the bot to how many servers it is currently in.
+client.on('ready', () => {
+    client.user.setActivity(`over the music in ${client.guilds.cache.size} servers`, {
+        type: "WATCHING",
+        name: "ittt"
+    });
+})
+
 // logs the bot into discord by processing the bot token from the enviornment variable file ".env"
 client.login(process.env.BOT_TOKEN);
 client.on("error", () => {client.login(process.env.BOT_TOKEN)});
