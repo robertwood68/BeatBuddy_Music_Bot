@@ -403,11 +403,11 @@ const skipSong = (message, serverQueue) => {
 }
 
 /**
- * Skips from the current song to the next if the command requested is //skip
+ * Skips from the current song to the song requested by number.
  * 
  * FULLY FUNCTIONAL
  * 
- * @returns error message or ends the current song
+ * @returns error message or skips to requested index in queue
  */
  const skipTo = (message, args, serverQueue, guild) => {
     // if no number is given
