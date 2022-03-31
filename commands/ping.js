@@ -10,8 +10,10 @@ module.exports = {
     description: "Responds with pong",
     async execute(message, args, cmd, client, Discord) {
         if (cmd === 'ping') {
-            console.log('time for pong');
-            message.channel.send('Pong');
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Pong")
+                .setColor("#0099E1")
+            message.channel.send(embed);
         }
     }
 }

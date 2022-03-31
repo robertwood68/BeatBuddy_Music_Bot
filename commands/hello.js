@@ -8,7 +8,9 @@ module.exports = {
     aliases: ['hi', 'hey'],
     description: "Says hello to the author of the command message",
     execute(message, args, cmd, client, Discord) {
-        console.log('Saying hello');
-        message.channel.send('Hey ' + message.author.username + '!');
+        const embed = new Discord.MessageEmbed()
+                .setAuthor('Hey ' + message.author.username + '!')
+                .setColor("#0099E1")
+        return message.channel.send(embed);
     }
 }

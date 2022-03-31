@@ -26,19 +26,22 @@ module.exports = {
             const embed1 = new Discord.MessageEmbed()
                 .setAuthor("List of my basic commands:")
                 .setThumbnail(message.guild.iconURL())
-                .setDescription(str1);
+                .setDescription(str1)
+                .setColor("#0099E1")
 
             // message embed for music commands
             const embed2 = new Discord.MessageEmbed()
                 .setAuthor("List of my audioplayer commands:")
                 .setThumbnail(message.guild.iconURL())
-                .setDescription(str2);
+                .setDescription(str2)
+                .setColor("#0099E1")
 
             // message embed for disclaimer, warning, and thanks
             const embed3 = new Discord.MessageEmbed()
                 .setAuthor("Caution:")
                 .setThumbnail(message.guild.iconURL())
-                .setDescription(str3);
+                .setDescription(str3)
+                .setColor("#0099E1")
 
             // send all embeds
             ch.send(embed1);
