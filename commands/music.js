@@ -2,6 +2,9 @@ const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
 const ytpl = require('ytpl');
 const Discord = require('discord.js');
+const spotifyurl = require('spotify-url-info');
+const fetch = require('isomorphic-unfetch');
+const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
 
 /**
@@ -33,16 +36,6 @@ module.exports = {
             console.log('Nobody in the voice channel');
             return message.channel.send("You need to enter a voice channel before I can play any music for you");
         }
-        // // PERMISSIONS ARE NOT NECCESSARY FOR THE PROTOTYPE
-        // // create a variable for the permissions
-        // const permissions = voiceChannel.permissions(message.client.user);
-        // // if the bot does not have specific permissions
-        // if (!permissions.has('CONNECT')){
-        //     return message.channel.send('You do not have connection permissions enabled for me');
-        // }
-        // if (!permissions.has('SPEAK')) {
-        //     return message.channel.send('You do not have speaking permissions enabled for me');
-        // }
 
         if (cmd === 'play' || cmd == 'p') {
             // check if no argument given
@@ -54,15 +47,14 @@ module.exports = {
             // create videos array to hold each song from a playlist
             let videos = [];
 
-            // if the requested song is a url, pull the song info from the link and set the details for the song
+            // if the requested song is a YouTube url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
                 console.log("Song")
                 const songInfo = await ytdl.getInfo(args[0]);
                 // set specific song information
                 song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate, thumbnail: songInfo.player_response.videoDetails.thumbnail.thumbnails[0].url, requester: message.author.username}
             } 
-            else if (ytpl.validateID(args[0])) {  // if link is a playlist
-                
+            else if (ytpl.validateID(args[0])) {  // if link is a YouTube playlist
                 // Create playlist collection
                 const playlist = ytpl(args[0]);
                 console.log("Got playlist");
@@ -78,6 +70,56 @@ module.exports = {
                     videos.push(song);
                 }
                 console.log("Added songs from playlist");
+            } 
+            else if (args[0].includes('spotify') && !args[0].includes('playlist')) { // if the link is a spotify song (not p.list)
+                // retrive the data for the song from the spotify link
+                let data = await getPreview(args[0]).then(function(data) {
+                    return data;
+                });
+                
+                const videoFinder = async (query) => {
+                    const videoResult = await ytSearch(query);
+                    return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+                }
+                
+                const video = await videoFinder(data.title + data.artist + "spotify");
+                if (video) {
+                    // set specific song information
+                    song = { title: data.title, url: video.url, artist: data.artist, time: video.duration.timestamp, date: data.date, thumbnail: video.thumbnail, requester: message.author.username}
+                } else {
+                    // if no results, send error message
+                    message.channel.send("Couldn't find the requested song, try using a YouTube link after //play");
+                    return;
+                }
+            } 
+            else if (args[0].includes('spotify') && args[0].includes('playlist')) { // if the link is a spotify playlist
+                // get the array of tracks in the spotify playlist
+                const playlist = await getTracks(args[0]).then(function(data) {
+                    return data;
+                });
+
+                // function to handle youtube searches
+                const videoFinder = async (query) => {
+                    const videoResult = await ytSearch(query);
+                    return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+                }
+
+                // loop through each song in the playlist
+                for (let i = 0; i < playlist.length; i++) {
+                    let title = playlist[i].name;
+                    let artist = playlist[i].artists[0].name;
+                    let date = playlist[i].album.release_date; 
+
+                    // retrive video from videoFinder
+                    const video = await videoFinder(title + artist + "spotify");
+
+                    // if there is a video, create the song object and add its details, then push it to the videos array.
+                    if (video) {
+                        // set specific song information
+                        let song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: video.thumbnail, requester: message.author.username};
+                        videos.push(song);
+                    }
+                }
             } 
             else {
                 // if the song is not a URL, then use keywords to find that song on youtube.
@@ -116,6 +158,12 @@ module.exports = {
                 
                 // push playlist items into queue if playlist is requested
                 if (ytpl.validateID(args[0])) {
+                    for (i = 0; i < videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                } else if (args[0].includes('spotify') && args[0].includes('playlist')) {
                     for (i = 0; i < videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
@@ -353,7 +401,7 @@ const getQueue = (message, guild) => {
     if (songQueue.songs[0]) str += `**Currently playing:**\n ${songQueue.songs[0].title}\n\n`;
 
     // for next ten songs after the first one
-    if (songQueue.songs[1]) str += `**Next Songs In Queue:**\n ${songQueue.songs.slice(1, 11).map(x => `**${index++})** ${x.title}\n Requested by: **${x.requester}**`).join("\n\n")}`;
+    if (songQueue.songs[1]) str += `**Next Songs In Queue:**\n ${songQueue.songs.slice(1, 11).map(x => `**${index++})** ${x.title}\n Artist: **${x.artist} \n Requested by: **${x.requester}**`).join("\n\n")}`;
 
 
     // create embed to hold current song plus the next ten after it

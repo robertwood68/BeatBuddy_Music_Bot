@@ -1,14 +1,17 @@
 /**
  * Main class for BeatBuddy Music Bot.
  * 
- * Milestone 1: Completed
+ * Milestone 1: (COMPLETE)
  *      Base prototype, functional commands, base website
- * Milestone 2: 
+ * 
+ * Milestone 2: (COMPLETE)
  *      Add playlist support (DONE)
- *      Host bot and site through AWS ()
- * Milestone 3: 
- *      Add queue (DONE), song info (DONE), shuffle (DONE) commands (COMPLETE)
- *      Add Spotify and SoundCloud Support to the music commands ()
+ *      Hostig bot through vultr, upload files throught filezilla, host wesbite on google cloud storage (DONE)
+ * 
+ * Milestone 3: (In Progress)
+ *      Add queue (DONE), song info (DONE), shuffle commands (DONE)
+ *      Add Scrub command (Working on now)
+ *      Add Spotify and SoundCloud Support to the music commands (Working on now)
  * 
  * @author Robert Wood
  */
