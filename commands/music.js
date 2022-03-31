@@ -111,6 +111,17 @@ module.exports = {
                     return data;
                 });
 
+                const playlistData = await getData(args[0]).then(function(data) {
+                    return data;
+                })
+
+                // get playlist name
+                const playlistName = playlistData.name;
+                // get playlist thumbnail
+                const playlistThumbnail = playlistData.images[0].url;
+                // get owner of the playlist
+                const owner = playlistData.owner.display_name;
+
                 // function to handle youtube searches
                 const videoFinder = async (query) => {
                     const videoResult = await ytSearch(query);
@@ -119,7 +130,7 @@ module.exports = {
 
                 // return a message embed saying that the playlist is being gotten
                 const searching = new Discord.MessageEmbed()
-                    .setAuthor("Retrieving your Spotify playlist")
+                    .setAuthor(`Retrieving the playlist ${playlistName}`)
                     .setDescription("This will take a minute or two...")
                     .setColor("#0099E1")
                 message.channel.send(searching);
@@ -135,12 +146,17 @@ module.exports = {
                         videos.push(song);
                     }
                 };
+                
+                let str = "";
+                str += `**${playlistName}** has been added \n`;
 
                 // return a message embed saying that the playlist was found
-                const success = new Discord.MessageEmbed()
-                    .setAuthor("Got it!")
+                const embed = new Discord.MessageEmbed()
+                    .setThumbnail(playlistThumbnail)
+                    .setAuthor("Success!")
+                    .setDescription(str + "\n" + "Owner: **" + owner + "**")
                     .setColor("#0099E1")
-                message.channel.send(success);
+                message.channel.send(embed);
             } 
             else {
                 // if the song is not a URL, then use keywords to find that song on youtube through a search query.
@@ -179,13 +195,13 @@ module.exports = {
                 
                 // push playlist items into queue if playlist is requested
                 if (ytpl.validateID(args[0])) {
-                    for (i = 0; i < videos.length - 1; i++) {
+                    for (i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
                     // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
                 } else if (args[0].includes('spotify') && args[0].includes('playlist')) {
-                    for (i = 0; i < videos.length - 1; i++) {
+                    for (i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
                     // remove the undefined push from song info outside of loop
@@ -218,14 +234,13 @@ module.exports = {
                     const playlistThumbnail = message.guild.iconURL();
                     // get index of undefine push of song above for removal
                     const elementToRemove = serverQueue.songs.length-1;
-
-                    // for each video, push it to the serverqueue
-                    for (i = 0; i < videos.length - 1; i++) {
-                        serverQueue.songs.push(videos[i]);
-                    }
-
                     // remove the undefined song push from earlier
                     serverQueue.songs.splice(elementToRemove, elementToRemove);
+
+                    // for each video, push it to the serverqueue
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        serverQueue.songs.push(videos[i]);
+                    }
 
                     // string to set as description in embed
                     let str = "";
@@ -239,53 +254,28 @@ module.exports = {
                     // return a message embed saying which playlist was added to the queue
                     return message.channel.send(embed);
                 } else if (args[0].includes('spotify') && args[0].includes('playlist')) {
-                    // get the array of tracks in the spotify playlist
-                    const playlist = await getData(args[0]).then(function(data) {
-                        return data;
-                    });
-
-                    // get playlist name
-                    const playlistName = playlist.name;
-                    // get playlist thumbnail
-                    const playlistThumbnail = playlist.images[0].url;
-                    // get owner of the playlist
-                    const owner = playlist.owner.display_name;
                     // get index of undefined song push to remove
                     const remIndex = serverQueue.songs.length-1;
-
-                    // for each song, push it to the serverQueue
-                    for (i = 0; i < videos.length - 1; i++) {
-                        serverQueue.songs.push(videos[i]);
-                    }
 
                     // remove the undefined song
                     serverQueue.songs.splice(remIndex, remIndex);
 
+                    // for each song, push it to the serverQueue
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        serverQueue.songs.push(videos[i]);
+                    }
+                } else {
                     // string to set as description in embed
                     let str = "";
-                    str += `**Playlist Added To Queue:**\n ${playlistName}`;
-
-                    // create embed show that the playlist was added to the queue
+                    str += `**Added to Queue:**\n ${song.title}`;
+                    // create embed show that the song was added to the queue
                     const embed = new Discord.MessageEmbed()
-                        .setThumbnail(playlistThumbnail)
-                        .setDescription(str + "\n" + "Owner: " + owner)
+                        .setThumbnail(song.thumbnail)
+                        .setDescription(str)
                         .setColor("#0099E1")
-
-                    // return a message embed saying which playlist was added to the queue
+                    // return a message embed saying which song was added to the queue
                     return message.channel.send(embed);
                 }
-                
-                // string to set as description in embed
-                let str = "";
-                str += `**Added to Queue:**\n ${song.title}`;
-                // create embed show that the song was added to the queue
-                const embed = new Discord.MessageEmbed()
-                    .setThumbnail(song.thumbnail)
-                    .setDescription(str)
-                    .setColor("#0099E1")
-
-                // return a message embed saying which song was added to the queue
-                return message.channel.send(embed);
             }
         } 
         else if (cmd === 'join') joinChannel(message, message.guild);
@@ -460,7 +450,7 @@ const skipSong = (message, serverQueue) => {
     const songQueue = queue.get(guild.id);
     const embed = new Discord.MessageEmbed()
             .setAuthor("Skipping to...")
-            .setDescription(args[0] + ": " + songQueue.songs[args[0]-1].title)
+            .setDescription(`**${args[0]})** ${songQueue.songs[args[0]].title}`)
             .setColor("#0099E1")   
     message.channel.send(embed);
 
