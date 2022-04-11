@@ -3,6 +3,12 @@ const ytSearch = require('yt-search');
 const ytpl = require('ytpl');
 const Discord = require('discord.js');
 const fetch = require('isomorphic-unfetch');
+const soundcloud = require('soundcloud-scraper');
+const { SoundCloud } = require("scdl-core");
+const scdl = new SoundCloud();
+scdl.connect();
+const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
+const fs = require("fs");
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
 
@@ -158,6 +164,77 @@ module.exports = {
                     .setColor("#0099E1")
                 message.channel.send(embed);
             } 
+            else if (
+                (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && args[0].includes('?in='))
+                 || (args[0].includes("https://") && args[0].includes('soundcloud') && !args[0].includes('sets') && args[0].includes("?")) 
+                 || (args[0].includes("https://") && args[0].includes('soundcloud') && !args[0].includes('sets') && !args[0].includes("?"))) { 
+
+                // get the track info
+                let pURL = args[0];
+                if (args[0].includes("sets") && args[0].includes("?in=")) {
+                    pURL = args[0].replace(/\?.+/, '');
+                } else if (!args[0].includes("sets") && args[0].includes("?")) {
+                    pURL = args[0].replace(/\?.+/, '');
+                }
+                const track = await scClient.getSongInfo(pURL).then(function(data) {
+                    return data;
+                });
+
+                const date = (track.publishedAt.toISOString().replace(/\T.+/, ''));
+
+                // set the details for the song that gets pushed
+                song = {title: track.title, url: track.url, artist: track.author.name, time: (track.duration/60000).toPrecision(3).replace(".", ":"), date: date, thumbnail: track.thumbnail, requester: message.author.username};
+
+                // push the song to the videos queue
+                videos.push(song);
+            }
+            else if (
+                (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && args[0].includes("?") && !args[0].includes("in=")) 
+                || (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && !args[0].includes("?"))) { 
+
+                let pURL = args[0];
+                if (args[0].includes("?")) {
+                    pURL = args[0].replace(/\?.+/, '');
+                }
+                
+                const p = (await scdl.playlists.getPlaylist(pURL));
+                const pName = p.title;
+                const pThumb = p.artwork_url;
+                let pThumbnail = "";
+                if (pThumb != "") {
+                    pThumbnail = pThumb;
+                }
+                const owner = p.user.username;
+
+                const playlist = scdl.playlists.getPlaylist(pURL);
+
+                // return a message embed saying that the playlist is being gotten
+                const searching = new Discord.MessageEmbed()
+                    .setAuthor(`Retrieving the playlist ${pName}`)
+                    .setDescription("This will take a minute or two...")
+                    .setColor("#0099E1")
+                message.channel.send(searching);
+
+                // loop through each song in the playlist
+                for (track in (await playlist).tracks) {
+                    let plSong = (await playlist).tracks[track];
+
+                    if (plSong) {
+                        let song = {title: plSong.title, url: plSong.permalink_url, artist: plSong.user.username, time: (plSong.duration/60000).toPrecision(3).replace(".", ":"), date: plSong.created_at.replace(/\T.+/, ''), thumbnail: plSong.artwork_url, requester: message.author.username};
+                        videos.push(song)
+                    }
+                }
+
+                // return a message embed saying that the playlist was found
+                let str = "";
+                str += `**${pName}** has been added \n`;
+                const embed = new Discord.MessageEmbed()
+                    .setThumbnail(pThumbnail)
+                    .setAuthor("Success!")
+                    .setDescription(str + "\n" + "Owner: **" + owner + "**")
+                    .setColor("#0099E1")
+                message.channel.send(embed);
+            }
             else {
                 // if the song is not a URL, then use keywords to find that song on youtube through a search query.
                 const videoFinder = async (query) => {
@@ -202,6 +279,12 @@ module.exports = {
                     queueConstructor.songs.shift();
                 } else if (args[0].includes('spotify') && args[0].includes('playlist')) {
                     for (i = 0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                } else if ((args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets')) || (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && !args[0].includes("?"))) {
+                    for (i=0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
                     // remove the undefined push from song info outside of loop
@@ -264,6 +347,16 @@ module.exports = {
                     for (i = 0; i <= videos.length - 1; i++) {
                         serverQueue.songs.push(videos[i]);
                     }
+                } else if ((args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets')) || (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && !args[0].includes("?"))) {
+                    const remIndex = serverQueue.songs.length-1;
+
+                    // remove the undefined song
+                    serverQueue.songs.splice(remIndex, remIndex);
+
+                    // for each song, push it to the serverQueue
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        serverQueue.songs.push(videos[i]);
+                    }
                 } else {
                     // string to set as description in embed
                     let str = "";
@@ -309,13 +402,23 @@ const videoPlayer = async (guild, song) => {
         queue.delete(guild.id);
         return;
     }
-
-    const stream = ytdl(song.url, { filter: 'audioonly', highWaterMark: 1<<25}); // highWaterMark fixed the lag and the random dispacher stopping
-    songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
-    .on('finish', () => {
-        songQueue.songs.shift();
-        videoPlayer(guild, songQueue.songs[0]);
-    });
+    if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
+        const stream = ytdl(song.url, { filter: 'audioonly', highWaterMark: 1<<25}); // audio options for stream
+        songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
+        .on('finish', () => {
+            songQueue.songs.shift();
+            videoPlayer(guild, songQueue.songs[0]);
+        });
+    } else {
+        const stream = await scClient.getSongInfo(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }).then(function(data) {
+            return data.downloadProgressive();
+        });
+        songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
+        .on('finish', () => {
+            songQueue.songs.shift();
+            videoPlayer(guild, songQueue.songs[0]);
+        });
+    }
 
     // string to set as description in embed
     let str = "";
@@ -395,7 +498,7 @@ const skipSong = (message, serverQueue) => {
 /**
  * Skips from the current song to the song requested by number.
  * 
- * FULLY FUNCTIONAL
+ * MILESTONE 3: FULLY FUNCTIONAL
  * 
  * @returns error message or skips to requested index in queue
  */
@@ -496,7 +599,7 @@ const skipSong = (message, serverQueue) => {
 }
 
 /**
- * Handles the resume statement as its own function becuase of the connection.dispatcher.resume() is buggy in the newest version of node.js.
+ * Handles the resume statement as its own function becuase of the connection.dispatcher.resume() is buggy in the newest version of discord.js.
  * 
  * FULLY FUNCTIONAL
  */
@@ -651,8 +754,6 @@ const songInfo = (message, guild) => {
  * Shuffles the song queue
  * 
  * MILESTONE 3: FULLY FUNCTIONAL
- * 
- * @returns null
  */
 const shuffle = (message, guild) => {
     const songQueue = queue.get(guild.id);
