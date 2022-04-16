@@ -1,6 +1,8 @@
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
 const ytpl = require('ytpl');
+// needed to get past explicit content barrier
+const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=f4=4000000&tz=America.New_York&f6=40000000&f5=30000; LOGIN_INFO=AFmmF2swRgIhAIQraz_zdWZVz9vwUyyBB9K5QypB_EWEsc_Rx83WjCNmAiEApvQg-E8fTqw1pL9zN9gDTKN22_2TSOl7Lq7cIzWr2zk:QUQ3MjNmelRtb1EzNjNscnk2UEZrTkZBQzI5aGZfRWZ1c18yZmVxeXkyNjJQRkNDZEg3eUpEV21iemstWFNoTUpybWZCZC1KX19pNHhRNEJFLWU4UzZHQUExNmNFWVYyb1c1R0ljYnh3ZUFnRk9IczRSRDlDd0puQUVYYkt1SEx4eVNsenVNdkUtVlVFeEhJb19kR2VQdm95TmI4Z1VXbWVR; SID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCwBYfU6ndCAAULaE3YPKoMw.; __Secure-1PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCUBGT4tx4uvMTDfqbGO1mpw.; __Secure-3PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCDfxu5lphiZVSuOBUYo97aA.; HSID=AIcOpsLqfP1ptA6Gs; SSID=A2fbCMZwMVPQQ9C9d; APISID=QItfrcR2Iva__JgM/AXGikIg8xnITdlKks; SAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-1PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-3PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; SIDCC=AJi4QfF50GVGxwQ1WWt-YRnRwuzdkn8blXK9BmethVZOprvx6A9b3RHX5y0BxDYv-1Px06H5FEc; __Secure-3PSIDCC=AJi4QfEhzm6JuecJt3eC_Qajm6dL08-DeHE2l_ZXsiuYLeJxSnMg-2nzD19p3BbcWJrkiii034w"; 
 const Discord = require('discord.js');
 const fetch = require('isomorphic-unfetch');
 const soundcloud = require('soundcloud-scraper');
@@ -11,6 +13,7 @@ const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
 const fs = require("fs");
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
+
 
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
@@ -59,7 +62,8 @@ module.exports = {
             // if the requested song is a YouTube url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
                 console.log("Song from YouTube")
-                const songInfo = await ytdl.getInfo(args[0]);
+                const songInfo = await ytdl.getInfo(args[0], { requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly'});
+                console.log(songInfo)
                 // set specific song information
                 song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate, thumbnail: songInfo.player_response.videoDetails.thumbnail.thumbnails[0].url, requester: message.author.username}
             } 
@@ -79,8 +83,9 @@ module.exports = {
                     videos.push(song);
                 }
             } 
-            else if (args[0].includes("https://") && args[0].includes('spotify') && !args[0].includes('playlist')) { // Sp.Song
+            else if (args[0].includes("https://") && args[0].includes('spotify') && !args[0].includes('playlist') && !args[0].includes('album')) { // Sp.Song
                 console.log("Song from Spotify");
+
                 // retrive the data for the song from the spotify link
                 let data = await getPreview(args[0]).then(function(data) {
                     return data;
@@ -110,59 +115,143 @@ module.exports = {
                     return message.channel.send(embed);
                 }
             } 
-            else if (args[0].includes("https://") && args[0].includes('spotify') && args[0].includes('playlist')) { // Sp.Playlist
-                console.log("Spotify Playlist")
-                // get the array of tracks in the spotify playlist
-                const playlist = await getTracks(args[0]).then(function(data) {
-                    return data;
-                });
+            else if (args[0].includes("https://") && args[0].includes('spotify') && !args[0].includes('playlist') && args[0].includes('album')) { 
+                console.log("Spotify Album");
+                try {
+                    // get the array of tracks in the spotify playlist
+                    const album = await getTracks(args[0]).then(function(data) {
+                        return data;
+                    });
+                    console.log("got tracks");
+                    console.log(album)
 
-                const playlistData = await getData(args[0]).then(function(data) {
-                    return data;
-                })
+                    // get the playlist data for the message embed
+                    const albumData = await getData(args[0]).then(function(data) {
+                        return data;
+                    })
+                    console.log("got album data");
+                    console.log(albumData)
 
-                // get playlist name
-                const playlistName = playlistData.name;
-                // get playlist thumbnail
-                const playlistThumbnail = playlistData.images[0].url;
-                // get owner of the playlist
-                const owner = playlistData.owner.display_name;
+                    // get playlist name
+                    const albumName = albumData.name;
+                    // get playlist thumbnail
+                    const albumThumbnail = albumData.images[0].url;
+                    // get owner of the playlist
+                    const albumArtist = albumData.artists[0].name;
 
-                // function to handle youtube searches
-                const videoFinder = async (query) => {
-                    const videoResult = await ytSearch(query);
-                    return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+                    // function to handle youtube searches
+                    const videoFinder = async (query) => {
+                        const videoResult = await ytSearch(query);
+                        return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+                    }
+                    console.log("Found a song");
+
+                    // return a message embed saying that the playlist is being gotten
+                    const searching = new Discord.MessageEmbed()
+                        .setAuthor(`Retrieving the album ${albumName}`)
+                        .setDescription("This will take a minute or two...")
+                        .setColor("#0099E1")
+                    message.channel.send(searching);
+
+                    // loop through each song in the playlist
+                    for (const track of album) {
+                        const video = await videoFinder(track.name + track.artists[0].name + "spotify");
+                        console.log("got video");
+                        console.log(video);
+                        // if there is a video, create the song object and add its details, then push it to the videos array.
+                        if (video) {
+                            console.log("in for loop")
+                            // set specific song information
+                            let song = { title: track.name, url: video.url, artist: track.artists[0].name, time: video.duration.timestamp, date: albumData.release_date, thumbnail: albumData.images[0].url, requester: message.author.username};
+                            console.log("Got song")
+                            videos.push(song);
+                            console.log("pushed Song")
+                        }
+                    };
+                    
+                    let str = "";
+                    str += `**${albumName}** has been added \n`;
+
+                    // return a message embed saying that the playlist was found
+                    const embed = new Discord.MessageEmbed()
+                        .setThumbnail(albumThumbnail)
+                        .setAuthor("Success!")
+                        .setDescription(str + "\n" + "Artist: **" + albumArtist + "**")
+                        .setColor("#0099E1")
+                    message.channel.send(embed);
+                } catch {
+                    const embed = new Discord.MessageEmbed()
+                        .setAuthor("Failure")
+                        .setDescription("Can't play the album.")
+                        .setColor("#0099E1")
+                    message.channel.send(embed);
                 }
 
-                // return a message embed saying that the playlist is being gotten
-                const searching = new Discord.MessageEmbed()
-                    .setAuthor(`Retrieving the playlist ${playlistName}`)
-                    .setDescription("This will take a minute or two...")
-                    .setColor("#0099E1")
-                message.channel.send(searching);
+            }
+            else if (args[0].includes("https://") && args[0].includes('spotify') && args[0].includes('playlist')) { // Sp.Playlist
+                console.log("Spotify Playlist");
+                try {
+                    // get the array of tracks in the spotify playlist
+                    const playlist = await getTracks(args[0]).then(function(data) {
+                        return data;
+                    });
+                    console.log("got tracks");
 
-                // loop through each song in the playlist
-                for (const track of playlist) {
-                    const video = await videoFinder(track.name + track.artists[0].name + "spotify");
+                    // get the playlist data for the message embed
+                    const playlistData = await getData(args[0]).then(function(data) {
+                        return data;
+                    })
+                    console.log("got playlist data");
 
-                    // if there is a video, create the song object and add its details, then push it to the videos array.
-                    if (video) {
-                        // set specific song information
-                        let song = { title: track.name, url: video.url, artist: track.artists[0].name, time: video.duration.timestamp, date: track.album.release_date, thumbnail: track.album.images[0].url, requester: message.author.username};
-                        videos.push(song);
+                    // get playlist name
+                    const playlistName = playlistData.name;
+                    // get playlist thumbnail
+                    const playlistThumbnail = playlistData.images[0].url;
+                    // get owner of the playlist
+                    const owner = playlistData.owner.display_name;
+
+                    // function to handle youtube searches
+                    const videoFinder = async (query) => {
+                        const videoResult = await ytSearch(query);
+                        return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                     }
-                };
-                
-                let str = "";
-                str += `**${playlistName}** has been added \n`;
+                    console.log("Found a song");
 
-                // return a message embed saying that the playlist was found
-                const embed = new Discord.MessageEmbed()
-                    .setThumbnail(playlistThumbnail)
-                    .setAuthor("Success!")
-                    .setDescription(str + "\n" + "Owner: **" + owner + "**")
-                    .setColor("#0099E1")
-                message.channel.send(embed);
+                    // return a message embed saying that the playlist is being gotten
+                    const searching = new Discord.MessageEmbed()
+                        .setAuthor(`Retrieving the playlist ${playlistName}`)
+                        .setDescription("This will take a minute or two...")
+                        .setColor("#0099E1")
+                    message.channel.send(searching);
+
+                    // loop through each song in the playlist
+                    for (const track of playlist) {
+                        const video = await videoFinder(track.name + track.artists[0].name + "spotify");
+                        // if there is a video, create the song object and add its details, then push it to the videos array.
+                        if (video) {
+                            // set specific song information
+                            let song = { title: track.name, url: video.url, artist: track.artists[0].name, time: video.duration.timestamp, date: track.album.release_date, thumbnail: track.album.images[0].url, requester: message.author.username};
+                            videos.push(song);
+                        }
+                    };
+                    
+                    let str = "";
+                    str += `**${playlistName}** has been added \n`;
+
+                    // return a message embed saying that the playlist was found
+                    const embed = new Discord.MessageEmbed()
+                        .setThumbnail(playlistThumbnail)
+                        .setAuthor("Success!")
+                        .setDescription(str + "\n" + "Owner: **" + owner + "**")
+                        .setColor("#0099E1")
+                    message.channel.send(embed);
+                } catch {
+                    const embed = new Discord.MessageEmbed()
+                        .setAuthor("Failure")
+                        .setDescription("Can't play that type of playlist.")
+                        .setColor("#0099E1")
+                    message.channel.send(embed);
+                }
             } 
             else if (
                 (args[0].includes("https://") && args[0].includes('soundcloud') && args[0].includes('sets') && args[0].includes('?in='))
@@ -277,6 +366,12 @@ module.exports = {
                     }
                     // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
+                } else if (args[0].includes('spotify') && args[0].includes('album')) {
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
                 } else if (args[0].includes('spotify') && args[0].includes('playlist')) {
                     for (i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
@@ -304,6 +399,7 @@ module.exports = {
                     message.channel.send(embed);
                     throw err;
                 }
+                
             } else {
                 // push song item regardless
                 serverQueue.songs.push(song);
@@ -403,7 +499,7 @@ const videoPlayer = async (guild, song) => {
         return;
     }
     if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
-        const stream = ytdl(song.url, { filter: 'audioonly', highWaterMark: 1<<25}); // audio options for stream
+        const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25}); // audio options for stream
         songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
         .on('finish', () => {
             songQueue.songs.shift();
