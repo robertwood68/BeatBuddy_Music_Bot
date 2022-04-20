@@ -27,7 +27,7 @@ const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle'],
+    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -95,7 +95,7 @@ module.exports = {
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                 }
                 
-                const video = await videoFinder(data.title + data.artist + "spotify");
+                const video = await videoFinder(data.title + data.artist + "audio only");
                 if (video) {
                     // set specific song information
                     song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: message.author.username}
@@ -142,7 +142,7 @@ module.exports = {
 
                     // loop through each song in the playlist
                     for (const track of album) {
-                        const video = await videoFinder(track.name + track.artists[0].name + "spotify");
+                        const video = await videoFinder(track.name + track.artists[0].name + "audio only");
                         // if there is a video, create the song object and add its details, then push it to the videos array.
                         if (video) {
                             // set specific song information
@@ -204,7 +204,7 @@ module.exports = {
 
                     // loop through each song in the playlist
                     for (const track of playlist) {
-                        const video = await videoFinder(track.name + track.artists[0].name + "spotify");
+                        const video = await videoFinder(track.name + track.artists[0].name + "audio only");
                         // if there is a video, create the song object and add its details, then push it to the videos array.
                         if (video) {
                             // set specific song information
@@ -473,6 +473,7 @@ module.exports = {
         else if (cmd === 'queue' || cmd === 'q') getQueue(message, message.guild);
         else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild);
         else if (cmd === 'shuffle') shuffle(message, message.guild);
+        else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild);
     }
 }
 
@@ -900,4 +901,58 @@ const shuffle = (message, guild) => {
             .setDescription("Queue has been shuffled")
             .setColor("#0099E1")
     return message.channel.send(embed);
+}
+
+/**
+ * Removes the song at the specified index from the queue.
+ * 
+ * POST-PROJECT
+ */
+const remove = (message, args, serverQueue, guild) => {
+    const songQueue = queue.get(guild.id);
+
+    // check if song queue doesn't exist
+    if (!songQueue) {
+        const embed = new Discord.MessageEmbed()
+            .setAuthor("There are no songs in the queue to remove")
+            .setColor("#0099E1")
+        message.channel.send(embed);
+        return;
+    }
+
+    // if index requested is not a number
+    if (isNaN(args[0])) {
+        const embed = new Discord.MessageEmbed()
+                .setAuthor("Error")
+                .setDescription("Enter a number from the queue after //remove")
+                .setColor("#0099E1")
+            message.channel.send(embed);
+        return;
+    }
+
+    // if the queue is longer than one, and there is a song at the requested index and the index is not 0, remove the track.  Otherwise, tell the user why the track couldn't be removed.
+    if (serverQueue.songs.length > 1) {
+        if (serverQueue.songs[args[0]] && args[0] != 0) {
+            serverQueue.songs.splice(args[0], 1);
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Track at index " + args[0] + " has been removed successfully")
+                .setColor("#0099E1")
+            message.channel.send(embed);
+            return;
+        } else if (args[0] === 0) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Error")
+                .setDescription("Can't remove a song that's already playing")
+                .setColor("#0099E1")
+            message.channel.send(embed);
+            return;
+        } else {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Error")
+                .setDescription("Couldn't remove song at index " + args[0])
+                .setColor("#0099E1")
+            message.channel.send(embed);
+            return;
+        }
+    } 
 }
