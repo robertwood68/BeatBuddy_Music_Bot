@@ -906,7 +906,7 @@ const shuffle = (message, guild) => {
 /**
  * Removes the song at the specified index from the queue.
  * 
- * POST-PROJECT
+ * FULLY FUNCTIONAL (Post MS3)
  */
 const remove = (message, args, serverQueue, guild) => {
     const songQueue = queue.get(guild.id);
