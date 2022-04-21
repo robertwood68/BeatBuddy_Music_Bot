@@ -95,7 +95,7 @@ module.exports = {
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                 }
                 
-                const video = await videoFinder(data.title + data.artist + "audio only");
+                const video = await videoFinder(data.title + data.artist + "lyrics");
                 if (video) {
                     // set specific song information
                     song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: message.author.username}
@@ -142,7 +142,7 @@ module.exports = {
 
                     // loop through each song in the playlist
                     for (const track of album) {
-                        const video = await videoFinder(track.name + track.artists[0].name + "audio only");
+                        const video = await videoFinder(track.name + track.artists[0].name + "lyrics");
                         // if there is a video, create the song object and add its details, then push it to the videos array.
                         if (video) {
                             // set specific song information
@@ -204,7 +204,7 @@ module.exports = {
 
                     // loop through each song in the playlist
                     for (const track of playlist) {
-                        const video = await videoFinder(track.name + track.artists[0].name + "audio only");
+                        const video = await videoFinder(track.name + track.artists[0].name + "lyrics");
                         // if there is a video, create the song object and add its details, then push it to the videos array.
                         if (video) {
                             // set specific song information
