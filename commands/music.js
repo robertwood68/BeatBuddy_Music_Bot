@@ -23,7 +23,7 @@ const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop'],
+    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop', 'repeat'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -471,7 +471,7 @@ module.exports = {
         else if (cmd === 'shuffle') shuffle(message, message.guild);
         else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild);
         else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild);
-        else if (cmd === 'loop') loopSong (message, message.guild);
+        else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild);
     }
 }
 
