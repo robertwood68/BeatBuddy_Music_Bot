@@ -18,16 +18,12 @@ const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=
  * Plays music in the current voice channel that the user who requested the song is in.
  * 
  * Updates: BeatBuddy can now take song, album, and playlist links from Spotify and SoundCloud
- * 
- * Later Features:
- *          // Pandora Radio Support
- *          // Remove Song Command
- * 
+ *
  * @author Robert Wood
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem'],
+    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -474,6 +470,8 @@ module.exports = {
         else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild);
         else if (cmd === 'shuffle') shuffle(message, message.guild);
         else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild);
+        else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild);
+        else if (cmd === 'loop') loopSong (message, message.guild);
     }
 }
 
@@ -955,4 +953,57 @@ const remove = (message, args, serverQueue, guild) => {
             return;
         }
     } 
+}
+
+/**
+ * Returns the number of songs in the queue.
+ * 
+ * Post-final demo FULLY FUNCTIONAL
+ */
+ const queueLength = (message, guild) => {
+    const songQueue = queue.get(guild.id);
+
+    // checks if queue doesn't exist
+    if (!songQueue) {
+        const embed = new Discord.MessageEmbed()
+            .setAuthor("There are no songs in the queue")
+            .setColor("#0099E1")
+        message.channel.send(embed);
+        return;
+    }
+
+    // create embed to hold current song plus the next ten after it
+    const embed = new Discord.MessageEmbed()
+        .setAuthor("There are " + songQueue.songs.length + " songs in the queue")
+        .setColor("#0099E1")
+
+    // return a message embed containing the queue
+    return message.channel.send(embed);
+}
+
+/**
+ * Loops the current song queue.
+ * 
+ * Post-final demo 
+ */
+ const loopSong = (message, guild) => {
+    const songQueue = queue.get(guild.id);
+
+    // check is song queue doesn't exist
+    if (!songQueue) {
+        const embed = new Discord.MessageEmbed()
+            .setAuthor("There is no queue to shuffle")
+            .setColor("#0099E1")
+        message.channel.send(embed);
+        return;
+    }
+
+    // index to put the songs at, how any elements to remove, and item to add at the front index
+    songQueue.songs.splice(1, 0, songQueue.songs[0]);
+
+    const embed = new Discord.MessageEmbed()
+            .setAuthor("Success!")
+            .setDescription("The song is now set to repeat")
+            .setColor("#0099E1")
+    return message.channel.send(embed);
 }

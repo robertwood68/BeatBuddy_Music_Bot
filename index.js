@@ -2,17 +2,16 @@
  * Main class for BeatBuddy Music Bot.
  * 
  * Milestone 1: (COMPLETE)
- *      Base prototype, functional commands, base website
+ *      Base prototype, functional commands, base website (DONE)
  * 
  * Milestone 2: (COMPLETE)
  *      Add playlist support (DONE)
  *      Hostig bot through vultr, upload files throught filezilla, host wesbite on google cloud storage (DONE)
  * 
- * Milestone 3: (In Progress)
+ * Milestone 3: (COMPLETE)
  *      Add queue (DONE), song info (DONE), shuffle commands (DONE)
  *      Add skipto command (DONE)
  *      Add Spotify and SoundCloud Support to the music commands (DONE)
- *      Add option to select song from youtube search (LATER)
  * 
  * @author Robert Wood
  */
@@ -25,7 +24,6 @@ require('dotenv').config();
 
 // create an instance of the discord client
 const client = new Discord.Client();
-
 
 // creates a new collection to hold the commands
 client.commands = new Discord.Collection();
