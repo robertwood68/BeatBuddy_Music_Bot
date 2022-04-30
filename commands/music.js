@@ -500,7 +500,7 @@ const videoPlayer = async (guild, song) => {
         .on('finish', () => {
             songQueue.songs.shift();
             videoPlayer(guild, songQueue.songs[0]);
-        });
+        })
     } else {
         const stream = await scClient.getSongInfo(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }).then(function(data) {
             return data.downloadProgressive();
