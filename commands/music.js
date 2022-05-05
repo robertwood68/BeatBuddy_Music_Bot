@@ -53,7 +53,7 @@ module.exports = {
 
             // if the requested song is a YouTube url, pull the song info from the link and set the details for the song
             if (ytdl.validateURL(args[0])) {
-                const songInfo = await ytdl.getInfo(args[0], { requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly'});
+                const songInfo = await ytdl.getInfo(args[0], { requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 });
                 console.log(songInfo)
                 // set specific song information
                 song = { title: songInfo.videoDetails.title, url: songInfo.videoDetails.video_url, artist: songInfo.videoDetails.author.name, time: songInfo.videoDetails.lengthSeconds/60, date: songInfo.videoDetails.uploadDate, thumbnail: songInfo.player_response.videoDetails.thumbnail.thumbnails[0].url, requester: message.author.username}
@@ -501,29 +501,52 @@ const videoPlayer = async (guild, song) => {
             songQueue.songs.shift();
             videoPlayer(guild, songQueue.songs[0]);
         })
+        // string to set as description in embed
+        let str = "";
+        str += `**Now Playing:**\n ${song.title}`;
+
+        // create embed to hold current song
+        const embed = new Discord.MessageEmbed()
+            .setThumbnail(song.thumbnail)
+            .setDescription(str)
+            .setColor("#0099E1")
+
+        // return now playing embed
+        await songQueue.text_channel.send(embed);
+        return;
     } else {
-        const stream = await scClient.getSongInfo(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }).then(function(data) {
-            return data.downloadProgressive();
-        });
-        songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
-        .on('finish', () => {
-            songQueue.songs.shift();
-            videoPlayer(guild, songQueue.songs[0]);
-        });
+        try {
+            const stream = await scClient.getSongInfo(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }).then(function(data) {
+                return data.downloadProgressive();
+            });
+            songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
+            .on('finish', () => {
+                songQueue.songs.shift();
+                videoPlayer(guild, songQueue.songs[0]);
+            });
+        } catch (err) {
+            console.log(err);
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Failure!")
+                .setDescription("Unable to play the song.")
+                .setColor("#0099E1")
+            // return error message
+            await songQueue.text_channel.send(embed);
+        }
+        // string to set as description in embed
+        let str = "";
+        str += `**Now Playing:**\n ${song.title}`;
+
+        // create embed to hold current song
+        const embed = new Discord.MessageEmbed()
+            .setThumbnail(song.thumbnail)
+            .setDescription(str)
+            .setColor("#0099E1")
+
+        // return now playing embed
+        await songQueue.text_channel.send(embed);
+        return;
     }
-
-    // string to set as description in embed
-    let str = "";
-    str += `**Now Playing:**\n ${song.title}`;
-
-    // create embed to hold current song
-    const embed = new Discord.MessageEmbed()
-        .setThumbnail(song.thumbnail)
-        .setDescription(str)
-        .setColor("#0099E1")
-
-    // return now playing embed
-    await songQueue.text_channel.send(embed);
 }
 
 /**
