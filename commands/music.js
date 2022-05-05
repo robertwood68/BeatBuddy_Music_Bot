@@ -1015,7 +1015,7 @@ const remove = (message, args, serverQueue, guild) => {
     // check is song queue doesn't exist
     if (!songQueue) {
         const embed = new Discord.MessageEmbed()
-            .setAuthor("There is no queue to shuffle")
+            .setAuthor("There is no song to repeat")
             .setColor("#0099E1")
         message.channel.send(embed);
         return;
