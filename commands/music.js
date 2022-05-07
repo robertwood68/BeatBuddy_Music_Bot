@@ -516,10 +516,10 @@ const videoPlayer = async (guild, song) => {
         return;
     } else {
         try {
-            const stream = await scClient.getSongInfo(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }).then(function(data) {
+            const stream = await scClient.getSongInfo(song.url, {filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 }).then(function(data) {
                 return data.downloadProgressive();
             });
-            songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
+            songQueue.connection.play(stream, {seek: 0, volume: 0.5})
             .on('finish', () => {
                 songQueue.songs.shift();
                 videoPlayer(guild, songQueue.songs[0]);
