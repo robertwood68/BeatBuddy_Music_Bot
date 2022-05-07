@@ -60,7 +60,7 @@ module.exports = {
             } 
             else if (ytpl.validateID(args[0])) {  // if link is a YouTube playlist
                 // Create playlist collection
-                const playlist = ytpl(args[0]);
+                const playlist = ytpl(args[0], {quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25});
                 // for each video in the playlist
                 for (vid in (await playlist).items) {
                     // let plSong be the video
@@ -87,7 +87,7 @@ module.exports = {
                 let thumbnail = data.image;
 
                 const videoFinder = async (query) => {
-                    const videoResult = await ytSearch(query);
+                    const videoResult = await ytSearch(query | {quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25});
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                 }
                 
@@ -125,7 +125,7 @@ module.exports = {
 
                     // function to handle youtube searches
                     const videoFinder = async (query) => {
-                        const videoResult = await ytSearch(query);
+                        const videoResult = await ytSearch(query | {quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25});
                         return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                     }
 
@@ -187,7 +187,7 @@ module.exports = {
 
                     // function to handle youtube searches
                     const videoFinder = async (query) => {
-                        const videoResult = await ytSearch(query);
+                        const videoResult = await ytSearch(query | {quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25});
                         return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                     }
 
@@ -309,7 +309,7 @@ module.exports = {
             else {
                 // if the song is not a URL, then use keywords to find that song on youtube through a search query.
                 const videoFinder = async (query) => {
-                    const videoResult = await ytSearch(query);
+                    const videoResult = await ytSearch(query | {quality: 'highestaudio', filter: 'audioonly', highWaterMark: 1<<25});
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
                 }
 
