@@ -495,7 +495,7 @@ const videoPlayer = async (guild, song) => {
         return;
     }
     if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
-        const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 }); // audio options for stream
+        const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
         songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
         .on('finish', () => {
             songQueue.songs.shift();
@@ -516,7 +516,7 @@ const videoPlayer = async (guild, song) => {
         return;
     } else {
         try {
-            const stream = await scClient.getSongInfo(song.url, {filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 }).then(function(data) {
+            const stream = await scClient.getSongInfo(song.url).then(function(data) {
                 return data.downloadProgressive();
             });
             songQueue.connection.play(stream, {seek: 0, volume: 0.5})
