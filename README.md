@@ -1,4 +1,5 @@
-# BeatBuddy_Music_Bot
+# BeatBuddy - Discord Music Bot
+![alt text](https://github.com/robertwood68/BeatBuddy_Music_Bot/blob/master/images/BB.png?raw=true)
 
 BeatBuddy is a Discord Music bot developed using Node.js.  At this time, BeatBuddy supports a wide variety of commands which can be found on its website https://www.beatbuddybot.com or through inviting the bot to your server and typing "//help" or "//h".
 
