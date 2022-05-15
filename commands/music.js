@@ -497,25 +497,38 @@ const videoPlayer = async (guild, song) => {
         return;
     }
     if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
-        const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
-        songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
-        .on('finish', () => {
+        try {
+            const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
+            songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
+            .on('finish', () => {
+                songQueue.songs.shift();
+                videoPlayer(guild, songQueue.songs[0]);
+            })
+            // string to set as description in embed
+            let str = "";
+            str += `**Now Playing:**\n ${song.title}`;
+
+            // create embed to hold current song
+            const embed = new Discord.MessageEmbed()
+                .setThumbnail(song.thumbnail)
+                .setDescription(str)
+                .setColor("#0099E1")
+
+            // return now playing embed
+            await songQueue.text_channel.send(embed);
+            return;
+        } catch {
+            console.log(err);
+            const embed = new Discord.MessageEmbed()
+                .setAuthor("Failure!")
+                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
+                .setColor("#0099E1")
             songQueue.songs.shift();
             videoPlayer(guild, songQueue.songs[0]);
-        })
-        // string to set as description in embed
-        let str = "";
-        str += `**Now Playing:**\n ${song.title}`;
-
-        // create embed to hold current song
-        const embed = new Discord.MessageEmbed()
-            .setThumbnail(song.thumbnail)
-            .setDescription(str)
-            .setColor("#0099E1")
-
-        // return now playing embed
-        await songQueue.text_channel.send(embed);
-        return;
+            // return error message
+            await songQueue.text_channel.send(embed);
+            return;
+        }
     } else {
         try {
             const stream = await scClient.getSongInfo(song.url).then(function(data) {
@@ -526,28 +539,31 @@ const videoPlayer = async (guild, song) => {
                 songQueue.songs.shift();
                 videoPlayer(guild, songQueue.songs[0]);
             });
+            // string to set as description in embed
+            let str = "";
+            str += `**Now Playing:**\n ${song.title}`;
+
+            // create embed to hold current song
+            const embed = new Discord.MessageEmbed()
+                .setThumbnail(song.thumbnail)
+                .setDescription(str)
+                .setColor("#0099E1")
+
+            // return now playing embed
+            await songQueue.text_channel.send(embed);
+            return;
         } catch (err) {
             console.log(err);
             const embed = new Discord.MessageEmbed()
                 .setAuthor("Failure!")
-                .setDescription("Unable to play the song.")
+                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
                 .setColor("#0099E1")
+            songQueue.songs.shift();
+            videoPlayer(guild, songQueue.songs[0]);
             // return error message
             await songQueue.text_channel.send(embed);
+            return;
         }
-        // string to set as description in embed
-        let str = "";
-        str += `**Now Playing:**\n ${song.title}`;
-
-        // create embed to hold current song
-        const embed = new Discord.MessageEmbed()
-            .setThumbnail(song.thumbnail)
-            .setDescription(str)
-            .setColor("#0099E1")
-
-        // return now playing embed
-        await songQueue.text_channel.send(embed);
-        return;
     }
 }
 
