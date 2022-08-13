@@ -7,7 +7,7 @@ const soundcloud = require('soundcloud-scraper');
 const { SoundCloud } = require("scdl-core");
 const scdl = new SoundCloud();
 //scdl.connect(); Outdated Command I Guess????
-SoundCloud.connect() // This one worked
+//SoundCloud.connect() // This one worked
 const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY); // REPLACE API KEY IN .ENV IF GETTING INVALID CLIENTID
 const fs = require("fs");
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
