@@ -21,7 +21,7 @@ const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=
  */
 module.exports = {
     name: 'play',
-    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop', 'repeat'],
+    aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop', 'repeat', 'loopAll', 'loopall', 'repeatAll', 'repeatall'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
 
@@ -471,6 +471,7 @@ module.exports = {
         else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild);
         else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild);
         else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild);
+        else if (cmd === 'loopAll' || cmd === 'loopall' || cmd === 'repeatAll' || cmd === 'repeatall') loopAll (message, message.guild);
     }
 }
 
@@ -1020,7 +1021,7 @@ const remove = (message, args, serverQueue, guild) => {
 }
 
 /**
- * Loops the current song queue.
+ * Loops the current song in the queue.
  * 
  * Post-final demo 
  */
@@ -1042,6 +1043,42 @@ const remove = (message, args, serverQueue, guild) => {
     const embed = new Discord.MessageEmbed()
             .setAuthor("Success!")
             .setDescription("The song is now set to repeat")
+            .setColor("#0099E1")
+    return message.channel.send(embed);
+}
+
+/**
+ * Loops the entirety of the current song queue.
+ * 
+ * Post-final demo 
+ *
+ * Fully Functional as of 8/24/22
+ */
+ const loopAll = (message, guild) => {
+    // pulls the current queue of songs
+    const songQueue = queue.get(guild.id);
+
+    // check is song queue doesn't exist
+    if (!songQueue) {
+        const embed = new Discord.MessageEmbed()
+            .setAuthor("There are no songs to repeat")
+            .setColor("#0099E1")
+        message.channel.send(embed);
+        return;
+    }
+
+    // variable saving the current length of the queue
+    const stop = songQueue.songs.length;
+    
+    // loops through the length of the queue and adds songs to the end of it in ascending order
+    for (i = 0; i < stop; i++) {
+        songQueue.songs.splice(songQueue.songs.length, 0, songQueue.songs[i]);
+    }
+
+    // success message embed
+    const embed = new Discord.MessageEmbed()
+            .setAuthor("Success!")
+            .setDescription("The queue is now set to repeat")
             .setColor("#0099E1")
     return message.channel.send(embed);
 }

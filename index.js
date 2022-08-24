@@ -6,7 +6,7 @@
  * 
  * Milestone 2: (COMPLETE)
  *      Add playlist support (DONE)
- *      Hostig bot through vultr, upload files throught filezilla, host wesbite on google cloud storage (DONE)
+ *      Hosting bot through vultr, upload files throught filezilla, host wesbite on google cloud storage (DONE)
  * 
  * Milestone 3: (COMPLETE)
  *      Add queue (DONE), song info (DONE), shuffle commands (DONE)
