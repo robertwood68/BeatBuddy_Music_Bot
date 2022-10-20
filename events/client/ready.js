@@ -7,4 +7,10 @@ module.exports = (Discord, client) => {
         type: "WATCHING",
         name: "ittt"
     });
+
+    client.queue = {};
+    if (typeof client.guilds == 'object' && typeof client.guilds[Symbol.iterator] == 'function') {
+        for (guild of client.guilds) client.queue[guild.id] = new Map();
+    }
+    
 };
