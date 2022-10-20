@@ -1,17 +1,34 @@
 /**
  * Main class for BeatBuddy Music Bot.
  * 
- * Milestone 1: (COMPLETE)
- *      Base prototype, functional commands, base website (DONE)
+ * Milestone 1: 
+ * Status: Done
  * 
- * Milestone 2: (COMPLETE)
- *      Add playlist support (DONE)
- *      Hosting bot through vultr, upload files throught filezilla, host wesbite on google cloud storage (DONE)
+ *      Base prototype, functional commands, base website
  * 
- * Milestone 3: (COMPLETE)
- *      Add queue (DONE), song info (DONE), shuffle commands (DONE)
- *      Add skipto command (DONE)
- *      Add Spotify and SoundCloud Support to the music commands (DONE)
+ * Milestone 2:
+ * Status: Done
+ * 
+ *      Add playlist support 
+ *      Hosting bot through vultr, upload files throught filezilla, host wesbite on google cloud storage 
+ * 
+ * Milestone 3:
+ * Status: Done
+ *      
+ *      Add queue, song info, shuffle commands
+ *      Add skipto command 
+ *      Add Spotify and SoundCloud Support to the music commands 
+ * 
+ * Post-Project Goals:              
+ * Status: In Progress
+ * 
+ *      Seperate music.js into multiple files for each command inside of it
+ *      Add new commands (loop, loopAll, move, moveTo)
+ *
+ * Once finished with all further development:  
+ * Status: Not Started
+ * 
+ *      Convert all commands to slash commands
  * 
  * @author Robert Wood
  */
@@ -34,14 +51,6 @@ var handlers = ['command_handler', 'event_handler'];
 for(const handler of handlers){
     require(`./handlers/${handler}`)(client, Discord);
 };
-
-// sets the activity of the bot to how many servers it is currently in.
-client.on('ready', () => {
-    client.user.setActivity(`over the music in ${client.guilds.cache.size} servers`, {
-        type: "WATCHING",
-        name: "ittt"
-    });
-})
 
 // logs the bot into discord by processing the bot token from the enviornment variable file ".env"
 client.login(process.env.BOT_TOKEN);
