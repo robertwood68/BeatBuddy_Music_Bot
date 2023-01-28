@@ -6,7 +6,7 @@ const fetch = require('isomorphic-unfetch');
 const soundcloud = require('soundcloud-scraper');
 const { SoundCloud } = require("scdl-core");
 const scdl = new SoundCloud();
-const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY); // REPLACE API KEY IN .ENV IF GETTING INVALID CLIENTID
+const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
 const fs = require("fs");
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
@@ -1011,6 +1011,7 @@ const remove = (message, args, serverQueue, guild) => {
             .setColor("#0099E1")
     return message.channel.send(embed);
 }
+
 
 /**
  * Loops the entirety of the current song queue.
