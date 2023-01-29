@@ -11,7 +11,23 @@ const fs = require("fs");
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
 const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=f4=4000000&tz=America.New_York&f6=40000000&f5=30000; LOGIN_INFO=AFmmF2swRgIhAIQraz_zdWZVz9vwUyyBB9K5QypB_EWEsc_Rx83WjCNmAiEApvQg-E8fTqw1pL9zN9gDTKN22_2TSOl7Lq7cIzWr2zk:QUQ3MjNmelRtb1EzNjNscnk2UEZrTkZBQzI5aGZfRWZ1c18yZmVxeXkyNjJQRkNDZEg3eUpEV21iemstWFNoTUpybWZCZC1KX19pNHhRNEJFLWU4UzZHQUExNmNFWVYyb1c1R0ljYnh3ZUFnRk9IczRSRDlDd0puQUVYYkt1SEx4eVNsenVNdkUtVlVFeEhJb19kR2VQdm95TmI4Z1VXbWVR; SID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCwBYfU6ndCAAULaE3YPKoMw.; __Secure-1PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCUBGT4tx4uvMTDfqbGO1mpw.; __Secure-3PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCDfxu5lphiZVSuOBUYo97aA.; HSID=AIcOpsLqfP1ptA6Gs; SSID=A2fbCMZwMVPQQ9C9d; APISID=QItfrcR2Iva__JgM/AXGikIg8xnITdlKks; SAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-1PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-3PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; SIDCC=AJi4QfF50GVGxwQ1WWt-YRnRwuzdkn8blXK9BmethVZOprvx6A9b3RHX5y0BxDYv-1Px06H5FEc; __Secure-3PSIDCC=AJi4QfEhzm6JuecJt3eC_Qajm6dL08-DeHE2l_ZXsiuYLeJxSnMg-2nzD19p3BbcWJrkiii034w";
+
+// add constants to external command functions
+const joinChannel = require("./musicCommands/join");
 const skipSong = require('./musicCommands/skip');
+const skipTo = require("./musicCommands/skipTo");
+const pauseSong = require("./musicCommands/pause");
+const resumeSong = require("./musicCommands/resume");
+const leaveChannel = require("./musicCommands/leave");
+const getQueue = require("./musicCommands/queue");
+const songInfo = require("./musicCommands/songInfo");
+const shuffle = require("./musicCommands/shuffle");
+const remove = require("./musicCommands/remove");
+const queueLength = require("./musicCommands/queueLength");
+const loopSong = require("./musicCommands/loopSong");
+const loopAll = require("./musicCommands/loopAll");
+const moveSong = require("./musicCommands/moveSong");
+// const videoPlayer = require("./musicCommands/videoPlayer");  Not using this atm.
 
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
@@ -25,6 +41,8 @@ module.exports = {
     aliases: ['p', 'skip', 'skipto', 'st', 'next', 'pause', 'resume', 'unpause', 'leave', 'stop', 'join', 'queue', 'q', 'songinfo', 'song', 'info', 'i', 'shuffle', 'remove', 'rem', 'qlength', 'queuelength', 'length', 'loop', 'repeat', 'loopAll', 'loopall', 'repeatAll', 'repeatall', 'move', 'm'],
     decription: 'plays the requested song in the voice channel',
     async execute(message, args, cmd, client, Discord) {
+        // create songQueue variable for use in external command
+        const songQueue = queue.get(message.guild.id);
 
         // create a variable for the current voice channel
         const voiceChannel = message.member.voice.channel;
@@ -371,7 +389,7 @@ module.exports = {
                 try {
                     const connection = await voiceChannel.join();
                     queueConstructor.connection = connection;
-                    videoPlayer(message.guild, queueConstructor.songs[0], message);
+                    videoPlayer(message.guild, queueConstructor.songs[0]); // add queue variable if it is decided to rework the videoPlayer function.
                 } catch {
                     queue.delete(message.guild.id);
                     const embed = new Discord.MessageEmbed()
@@ -460,20 +478,20 @@ module.exports = {
                 }
             }
         } 
-        else if (cmd === 'join') joinChannel(message, message.guild);
+        else if (cmd === 'join') joinChannel(message, message.guild, queue);
         else if (cmd === 'skip' || cmd === 'next') skipSong(message, serverQueue);
-        else if (cmd === 'skipto' || cmd === 'st') skipTo(message, args, serverQueue, message.guild);
+        else if (cmd === 'skipto' || cmd === 'st') skipTo(message, args, serverQueue, message.guild, songQueue);
         else if (cmd === "pause") pauseSong(message, serverQueue);
         else if (cmd === "resume" || cmd === "unpause") resumeSong(message, serverQueue);
         else if (cmd === 'leave' || cmd === 'stop') leaveChannel(message, serverQueue);
-        else if (cmd === 'queue' || cmd === 'q') getQueue(message, message.guild);
-        else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild);
-        else if (cmd === 'shuffle') shuffle(message, message.guild);
-        else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild);
-        else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild);
-        else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild);
-        else if (cmd === 'loopAll' || cmd === 'loopall' || cmd === 'repeatAll' || cmd === 'repeatall') loopAll (message, message.guild);
-        else if (cmd == 'move' || cmd == 'm') moveSong(message, args, serverQueue, message.guild);
+        else if (cmd === 'queue' || cmd === 'q') getQueue(message, message.guild, queue);
+        else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild, queue);
+        else if (cmd === 'shuffle') shuffle(message, message.guild, queue);
+        else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild, queue);
+        else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild, queue);
+        else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild, queue);
+        else if (cmd === 'loopAll' || cmd === 'loopall' || cmd === 'repeatAll' || cmd === 'repeatall') loopAll (message, message.guild, queue);
+        else if (cmd == 'move' || cmd == 'm') moveSong(message, args, serverQueue, message.guild, queue);
     }
 }
 
@@ -484,7 +502,7 @@ module.exports = {
  * 
  * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
  */
-const videoPlayer = async (guild, song) => {
+ const videoPlayer = async (guild, song) => {
     const songQueue = queue.get(guild.id);
 
     if (!song) {
@@ -565,553 +583,4 @@ const videoPlayer = async (guild, song) => {
             return;
         }
     }
-}
-
-/**
- * Joins the user's voice channel without playing any music
- * 
- * FULLY FUNCTIONAL
- *
- * @returns an error message if the bot is already in a voice channel.
- */
- const joinChannel = async (message, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    if (songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Already in the voice channel")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    } 
-
-    const embed = new Discord.MessageEmbed()
-        .setAuthor("Joining the channel")
-        .setColor("#0099E1")
-    message.channel.send(embed);
-    message.member.voice.channel.join();
-}
-
-/**
- * Skips from the current song to the song requested by number.
- * 
- * MILESTONE 3: FULLY FUNCTIONAL
- * 
- * @returns error message or skips to requested index in queue
- */
- const skipTo = (message, args, serverQueue, guild) => {
-    // if no number is given
-    if (!args[0]) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("Try //skipto (integer)")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    // if the user tries to clear a number of messages that isn't real
-    if (isNaN(args[0])) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("Try //skipto (integer)")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    // if the user tries to delete more than 100 messages
-    if (args[0] > serverQueue.songs.length - 1) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There is no song at index " + args[0])
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    // if the user tries to delete less than 1 message
-    if (args[0] < 1) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There is no song at index " + args[0])
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    // if user is not in the voice channel
-    if (!message.member.voice.channel) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Must be in the voice channel to skip to a song")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    // if there is no queue
-    if (!serverQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-
-    const songQueue = queue.get(guild.id);
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Skipping to...")
-            .setDescription(`**${args[0]})** ${songQueue.songs[args[0]].title}`)
-            .setColor("#0099E1")   
-    message.channel.send(embed);
-
-    // end dispatcher and shift queue until queue reaches the song
-    for (i=0; i < args[0] - 1; i++) {
-        serverQueue.connection.dispatcher.end();
-        songQueue.songs.shift();
-    }
-}
-
-/**
- * Pauses the song if the command requested if //pause
- * 
- * FULLY FUNCTIONAL
- */
- const pauseSong = (message, serverQueue) => {
-    if (!serverQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There is nothing to pause")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    if (serverQueue.connection.dispatcher.paused) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("The song is already paused")
-            .setColor("#0099E1")
-        return message.channel.send(embed); // Checks if the song is already paused.
-    }
-    // Sends a message to the channel the command was used in while trying to pause
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Attempting to pause the song...")
-            .setColor("#0099E1")
-    message.channel.send(embed);
-    // If the song isn't paused this will pause it.
-    serverQueue.connection.dispatcher.pause();
-    // Sends a message to the channel the command was used in after it pauses
-    const embed1 = new Discord.MessageEmbed()
-            .setAuthor("Song paused!")
-            .setColor("#0099E1")
-    message.channel.send(embed1);
-}
-
-/**
- * Handles the resume statement as its own function becuase of the connection.dispatcher.resume() is buggy in the newest version of discord.js.
- * 
- * FULLY FUNCTIONAL
- */
- const uglyResumeMethod = (serverQueue) => {
-    // In order to have one command, the order of commands must be exactly this --> pause, resume, resume, pause, resume, resume.
-    serverQueue.connection.dispatcher.pause(true);
-    serverQueue.connection.dispatcher.resume();
-    serverQueue.connection.dispatcher.resume();
-    serverQueue.connection.dispatcher.pause(true);
-    serverQueue.connection.dispatcher.resume();
-    serverQueue.connection.dispatcher.resume();
-    // Unfortunately, all of these statements are neccessary as the newest release of
-    // discord.js has a very buggy version of dispatcher.resume().  By using these 
-    // statements, the users only need to command //resume once to unpause the song
-    // instead of twice.
-}
-
-/**
- * Unpauses the song if the command requested if //resume
- * 
- * FULLY FUNCTIONAL
- */
- const resumeSong = (message, serverQueue) => {
-    if(!serverQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There is nothing to unpause")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Attempting to resume the song...")
-            .setColor("#0099E1")
-    message.channel.send(embed);
-    uglyResumeMethod(serverQueue); // If the song is paused this will unpause it.
-    const embed1 = new Discord.MessageEmbed()
-            .setAuthor("Song resumed!")
-            .setColor("#0099E1")
-    message.channel.send(embed1); // Sends a message to the channel the command was used in after it unpauses.
-}
-
-/**
- * Stops the videoplayer if the command requested is //stop
- * 
- * FULLY FUNCTIONAL
- * 
- * @returns an arror message or leaves the channel
- */
-const leaveChannel = (message, serverQueue) => {
-    const userVoiceChannel = message.member.voice.channel;
-    if (!userVoiceChannel) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("I'm not in a voice channel")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    if (serverQueue) {
-        // empties the queue
-        serverQueue.songs = [];
-        // ends dispatcher to disconnect from channel after emptying the queue
-        if (serverQueue.connection.dispatcher) {
-            serverQueue.connection.dispatcher.end();
-        } else {
-            userVoiceChannel.leave();
-        }
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Left the voice channel")
-            .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-    userVoiceChannel.leave();
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Left the voice channel")
-            .setColor("#0099E1")
-    message.channel.send(embed);
-}
-
-/**
- * Outputs the current song and the next ten songs following it as an embed.
- * 
- * Milestone 3: FULLY FUNCTIONAL 
- */
-const getQueue = (message, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // checks if queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    let index = 1;
-    let str = "";
-
-    // for the song currently playing
-    if (songQueue.songs[0]) str += `**Currently playing:**\n ${songQueue.songs[0].title}\n\n`;
-
-    // for next ten songs after the first one
-    if (songQueue.songs[1]) str += `**Next Songs In Queue:**\n ${songQueue.songs.slice(1, 11).map(x => `**${index++})** ${x.title}\n Artist: **${x.artist}** \n Requested by: **${x.requester}**`).join("\n\n")}`;
-
-
-    // create embed to hold current song plus the next ten after it
-    const embed = new Discord.MessageEmbed()
-        .setAuthor(`${message.guild.name}'s Queue`)
-        .setThumbnail(songQueue.songs[0].thumbnail)
-        .setDescription(str)
-        .setColor("#0099E1")
-
-    // return a message embed containing the queue
-    return message.channel.send(embed);
-}
-
-/**
- * Outputs song info for the current track
- * 
- * Milestone 3: FULLY FUNCTIONAL
- */
-const songInfo = (message, guild) => {
-    const songQueue = queue.get(guild.id);
-    
-    // check if song queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // Works correctly
-    const title = songQueue.songs[0].title;
-    const artist = songQueue.songs[0].artist;
-    const time = songQueue.songs[0].time;
-    const date = songQueue.songs[0].date;
-
-    // create embed to hold current song plus the next ten after it
-    const embed = new Discord.MessageEmbed()
-        .setAuthor(title)
-        .setThumbnail(songQueue.songs[0].thumbnail)
-        .setDescription("**Artist:** " + artist + "\n**Length:** " + time + "\n**Date Published:** " + date)
-        .setColor("#0099E1")
-
-    // return a message embed containing the queue
-    return message.channel.send(embed);
-}
-
-/**
- * Shuffles the song queue
- * 
- * MILESTONE 3: FULLY FUNCTIONAL
- */
-const shuffle = (message, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // check is song queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There is no queue to shuffle")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // if only song in queue is playing
-    if (songQueue.songs.length === 1) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There are no songs in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    } 
-    
-    // if one song is playing and there is only one in the queue
-    if (songQueue.songs.length === 2) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("Error")
-            .setDescription("There is one song playing and only one in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    } 
-    
-    // if queue exists and more than one song is in the queue
-    for (let i = songQueue.songs.length - 1; i > 0; i--) {
-        // create element to switch the one at i with
-        const j = Math.floor(Math.random() * (i + 1));
-        // prevents the switching of the song currently playing
-        if (j == 0) {
-            // create variable k for element 1
-            const k = j + 1;
-            // switch elements at i and k
-            [songQueue.songs[i], songQueue.songs[k]] = [songQueue.songs[k], songQueue.songs[i]];
-        } else {
-            // switch elements at i and j
-            [songQueue.songs[i], songQueue.songs[j]] = [songQueue.songs[j], songQueue.songs[i]];
-        }
-    }
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Success!")
-            .setDescription("Queue has been shuffled")
-            .setColor("#0099E1")
-    return message.channel.send(embed);
-}
-
-/**
- * Removes the song at the specified index from the queue.
- * 
- * FULLY FUNCTIONAL (Post MS3)
- */
-const remove = (message, args, serverQueue, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // check if song queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue to remove")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // if index requested is not a number
-    if (isNaN(args[0])) {
-        const embed = new Discord.MessageEmbed()
-                .setAuthor("Error")
-                .setDescription("Enter a number from the queue after //remove")
-                .setColor("#0099E1")
-            message.channel.send(embed);
-        return;
-    }
-
-    // if the queue is longer than one, and there is a song at the requested index and the index is not 0, remove the track.  Otherwise, tell the user why the track couldn't be removed.
-    if (serverQueue.songs.length > 1) {
-        if (serverQueue.songs[args[0]] && args[0] != 0) {
-            serverQueue.songs.splice(args[0], 1);
-            const embed = new Discord.MessageEmbed()
-                .setAuthor("Track at index " + args[0] + " has been removed successfully")
-                .setColor("#0099E1")
-            message.channel.send(embed);
-            return;
-        } else if (args[0] === 0) {
-            const embed = new Discord.MessageEmbed()
-                .setAuthor("Error")
-                .setDescription("Can't remove a song that's already playing")
-                .setColor("#0099E1")
-            message.channel.send(embed);
-            return;
-        } else {
-            const embed = new Discord.MessageEmbed()
-                .setAuthor("Error")
-                .setDescription("Couldn't remove song at index " + args[0])
-                .setColor("#0099E1")
-            message.channel.send(embed);
-            return;
-        }
-    } 
-}
-
-/**
- * Returns the number of songs in the queue.
- * 
- * Post-final demo FULLY FUNCTIONAL
- */
- const queueLength = (message, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // checks if queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // create embed to hold current song plus the next ten after it
-    const embed = new Discord.MessageEmbed()
-        .setAuthor("There are " + songQueue.songs.length + " songs in the queue")
-        .setColor("#0099E1")
-
-    // return a message embed containing the queue
-    return message.channel.send(embed);
-}
-
-/**
- * Loops the current song in the queue.
- * 
- * Post-final demo 
- */
- const loopSong = (message, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // check is song queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There is no song to repeat")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // index to put the songs at, how any elements to remove, and item to add at the front index
-    songQueue.songs.splice(1, 0, songQueue.songs[0]);
-
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Success!")
-            .setDescription("The song is now set to repeat")
-            .setColor("#0099E1")
-    return message.channel.send(embed);
-}
-
-
-/**
- * Loops the entirety of the current song queue.
- * 
- * Post-final demo 
- *
- * Fully Functional as of 8/24/22
- */
- const loopAll = (message, guild) => {
-    // pulls the current queue of songs
-    const songQueue = queue.get(guild.id);
-
-    // check is song queue doesn't exist
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs to repeat")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // variable saving the current length of the queue
-    const stop = songQueue.songs.length;
-    
-    // loops through the length of the queue and adds songs to the end of it in ascending order
-    for (i = 0; i < stop; i++) {
-        songQueue.songs.splice(songQueue.songs.length, 0, songQueue.songs[i]);
-    }
-
-    // success message embed
-    const embed = new Discord.MessageEmbed()
-            .setAuthor("Success!")
-            .setDescription("The queue is now set to repeat")
-            .setColor("#0099E1")
-    return message.channel.send(embed);
-}
-
-/**
- * Moves the specified song to the top of the queue
- * 
- * Fall 2022
- * 
- * Fully Functional
- */
-const moveSong = (message, args, serverQueue, guild) => {
-    const songQueue = queue.get(guild.id);
-
-    // if no song queue
-    if (!songQueue) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("There are no songs in the queue")
-            .setColor("#0099E1")
-        message.channel.send(embed);
-        return;
-    }
-
-    // if trying to move song playing currently
-    if (args[0] == 0) {
-        const embed = new Discord.MessageEmbed()
-                .setAuthor("Error")
-                .setDescription("Can't move the current song to play next, try '//loop'")
-                .setColor("#0099E1")
-            message.channel.send(embed);
-        return;
-    }
-
-    // if index requested is not a number or no index is requested
-    if (isNaN(args[0]) || !args[0]) {
-        const embed = new Discord.MessageEmbed()
-                .setAuthor("Error")
-                .setDescription("Enter a number from the queue after //move")
-                .setColor("#0099E1")
-            message.channel.send(embed);
-        return;
-    }
-
-    // if there is a song at the specified index
-    if (songQueue.songs[args[0]]) {
-        // song selected by the user
-        const selectedSong = songQueue.songs[args[0]];
-
-        // remove the song from its original index
-        serverQueue.songs.splice(args[0], 1);
-
-        // moves the song to the next spot in the queue
-        songQueue.songs.splice(1, 0, selectedSong);
-
-        // success message embed
-        const embed = new Discord.MessageEmbed()
-                .setAuthor("Success!")
-                .setDescription("The song has been moved to play next")
-                .setColor("#0099E1")
-        return message.channel.send(embed);
-    }
-
-    // if anything outside of this method goes wrong
-    const embed = new Discord.MessageEmbed()
-        .setAuthor("Error!")
-        .setDescription("There is no song at the index requested")
-        .setColor("#0099E1")
-    return message.channel.send(embed);
-    
 }

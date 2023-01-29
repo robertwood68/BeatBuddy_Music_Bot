@@ -2,8 +2,6 @@ const Discord = require('discord.js');
 /**
  * Skips from the current song to the next if the command requested is //skip
  * 
- * FULLY FUNCTIONAL
- * 
  * @returns error message or ends the current song
  */
 const skipSong = (message, serverQueue) => {
