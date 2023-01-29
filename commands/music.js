@@ -27,7 +27,9 @@ const queueLength = require("./musicCommands/queueLength");
 const loopSong = require("./musicCommands/loopSong");
 const loopAll = require("./musicCommands/loopAll");
 const moveSong = require("./musicCommands/moveSong");
-// const videoPlayer = require("./musicCommands/videoPlayer");  Not using this atm.
+
+// create variable for the video player function
+const videoPlayer = require("./musicCommands/videoPlayer");
 
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
@@ -389,7 +391,7 @@ module.exports = {
                 try {
                     const connection = await voiceChannel.join();
                     queueConstructor.connection = connection;
-                    videoPlayer(message.guild, queueConstructor.songs[0]); // add queue variable if it is decided to rework the videoPlayer function.
+                    videoPlayer(message.guild, queueConstructor.songs[0], queue); // add queue variable if it is decided to rework the videoPlayer function.
                 } catch {
                     queue.delete(message.guild.id);
                     const embed = new Discord.MessageEmbed()
@@ -492,95 +494,5 @@ module.exports = {
         else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild, queue);
         else if (cmd === 'loopAll' || cmd === 'loopall' || cmd === 'repeatAll' || cmd === 'repeatall') loopAll (message, message.guild, queue);
         else if (cmd == 'move' || cmd == 'm') moveSong(message, args, serverQueue, message.guild, queue);
-    }
-}
-
-/**
- * Configures the options for the music and plays the music in the voice channel.
- * 
- * FULLY FUNCTONAL
- * 
- * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
- */
- const videoPlayer = async (guild, song) => {
-    const songQueue = queue.get(guild.id);
-
-    if (!song) {
-        const embed = new Discord.MessageEmbed()
-            .setAuthor("No more songs in the queue.")
-            .setColor("#0099E1")
-        songQueue.text_channel.send(embed);
-        songQueue.voice_channel.leave();
-        queue.delete(guild.id);
-        return;
-    }
-    if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
-        try {
-            const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
-            songQueue.connection.play(stream, { seek: 0, volume: 0.5 })
-            .on('finish', () => {
-                songQueue.songs.shift();
-                videoPlayer(guild, songQueue.songs[0]);
-            })
-            // string to set as description in embed
-            let str = "";
-            str += `**Now Playing:**\n ${song.title}`;
-
-            // create embed to hold current song
-            const embed = new Discord.MessageEmbed()
-                .setThumbnail(song.thumbnail)
-                .setDescription(str)
-                .setColor("#0099E1")
-
-            // return now playing embed
-            await songQueue.text_channel.send(embed);
-            return;
-        } catch {
-            console.log(err);
-            const embed = new Discord.MessageEmbed()
-                .setAuthor("Failure!")
-                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
-                .setColor("#0099E1")
-            songQueue.songs.shift();
-            videoPlayer(guild, songQueue.songs[0]);
-            // return error message
-            await songQueue.text_channel.send(embed);
-            return;
-        }
-    } else {
-        try {
-            const stream = await scClient.getSongInfo(song.url).then(function(data) {
-                return data.downloadProgressive();
-            });
-            songQueue.connection.play(stream, {seek: 0, volume: 0.5})
-            .on('finish', () => {
-                songQueue.songs.shift();
-                videoPlayer(guild, songQueue.songs[0]);
-            });
-            // string to set as description in embed
-            let str = "";
-            str += `**Now Playing:**\n ${song.title}`;
-
-            // create embed to hold current song
-            const embed = new Discord.MessageEmbed()
-                .setThumbnail(song.thumbnail)
-                .setDescription(str)
-                .setColor("#0099E1")
-
-            // return now playing embed
-            await songQueue.text_channel.send(embed);
-            return;
-        } catch (err) {
-            console.log(err);
-            const embed = new Discord.MessageEmbed()
-                .setAuthor("Failure!")
-                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
-                .setColor("#0099E1")
-            songQueue.songs.shift();
-            videoPlayer(guild, songQueue.songs[0]);
-            // return error message
-            await songQueue.text_channel.send(embed);
-            return;
-        }
     }
 }
