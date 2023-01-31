@@ -27,6 +27,7 @@ const queueLength = require("./musicCommands/queueLength");
 const loopSong = require("./musicCommands/loopSong");
 const loopAll = require("./musicCommands/loopAll");
 const moveSong = require("./musicCommands/moveSong");
+require("../index");
 
 // create variable for the video player function
 const videoPlayer = require("./musicCommands/videoPlayer");
@@ -59,6 +60,20 @@ module.exports = {
                 .setColor("#0099E1")
             return message.channel.send(embed);
         }
+
+        // Listener that clears the queue if manually disconnected by user.
+        client.on('voiceStateUpdate', (oldState, newState) => {
+            // check if someone connects or disconnects, and check if the bot is disconnecting
+            if (oldState.channelID === null || typeof oldState.channelID == 'undefined' || newState.id !== client.user.id) return;
+            else {
+                // loops multiple times supposedly
+                // const embed = new Discord.MessageEmbed()
+                //     .setAuthor("Left the voice channel")
+                //     .setColor("#0099E1")
+                // message.channel.send(embed);
+            }
+            return queue.delete(oldState.guild.id);
+        });
 
         if (cmd === 'play' || cmd == 'p') {
             // check if no argument given
