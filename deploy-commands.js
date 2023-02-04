@@ -1,15 +1,22 @@
+/**
+ * Deploys any newly made slash commands.  
+ * 
+ * Enter node deploy-commands.js into the terminal to run.
+ * 
+ * @author Robert Wood 2023
+ */
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, token } = require('./config.json');
+const { clientId, guildId, token } = require('./config.json');
 const fs = require('node:fs');
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
-const commandFiles = fs.readdirSync('./slashcommands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
-	const command = require(`./slashcommands/${file}`);
+	const command = require(`./commands/${file}`);
 	commands.push(command.data.toJSON());
 }
 
@@ -23,7 +30,7 @@ const rest = new REST({ version: '10' }).setToken(token);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
 		const data = await rest.put(
-            Routes.applicationCommands(clientId),
+            Routes.applicationCommands(clientId, guildId),
             { body: commands },
         );
 

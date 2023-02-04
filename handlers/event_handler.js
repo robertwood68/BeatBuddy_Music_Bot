@@ -1,25 +1,22 @@
-// require fileSystem in order to read directories
-const fs = require('fs');
-
 /**
- * Adds all of the events to the events collection in the main class.
+ * Handles all client events.
  * 
  * @author Robert Wood
  */
-module.exports = (client, Discord) => {
-    // loads the events directory
-    const load_dir = (dirs) => {
-        // creates the eventFiles variable to hold each event
-        const eventFiles = fs.readdirSync(`./events/${dirs}`).filter(file => file.endsWith('.js'));
-
-        // adds each event to eventFiles from the events folder
-        for (const file of eventFiles) {
-            const event = require(`../events/${dirs}/${file}`);
-            const eventName = file.split('.')[0];
-            client.on(eventName, event.bind(null, Discord, client));
+const fs = require('node:fs');
+const path = require('node:path');
+module.exports = (client) => {
+    // event handler
+    const eventsPath = path.join(__dirname, '../events');
+    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+    // iterate over every event file and set to client events list
+    for (const file of eventFiles) {
+        const filePath = path.join(eventsPath, file);
+        const event = require(filePath);
+        if (event.once) {
+            client.once(event.name, (...args) => event.execute(...args));
+        } else {
+            client.on(event.name, (...args) => event.execute(...args));
         }
     }
-
-    // loads each events directory
-    ['client', 'guild'].forEach(e => load_dir(e));
 }
