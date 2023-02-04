@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits} = require('discord.js');
+const { serverQueue, connection } = require("./music");
 /**
  * Skips from the current song to the next if the command requested is //skip
  * 
@@ -10,10 +11,12 @@ module.exports = {
     .setDescription('Skips the current song')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages, PermissionFlagsBits.Connect, PermissionFlagsBits.SendMessages)
     .setDMPermission(false), 
-    async execute(interaction) {
+    async execute(client, interaction) {
+        client.player.stop(); // need to figure out how to skip with player
+        console.log("Skipped")
         const embed = new EmbedBuilder()
             .setColor('#0099E1')
-            .setDescription('Sorry, this command is not ready yet.');
+            .setDescription('Skipped the song');
         return await interaction.reply({embeds: [embed]});
         // if (!message.member.voice.channel) {
         //     const embed = new Discord.MessageEmbed()

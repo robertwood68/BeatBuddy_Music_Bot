@@ -11,7 +11,7 @@ module.exports = {
         .setDescription('Greets you back!')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
         .setDMPermission(false),
-    async execute(interaction) {
+    async execute(client, interaction) {
         const responseEmbed = new EmbedBuilder().setColor("#0099E1");
         const username = interaction.user.username;
         interaction.reply({embeds: [responseEmbed.setDescription(`Hello ${username}!`)]})

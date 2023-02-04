@@ -1,8 +1,8 @@
-
+// const client = require("../index");
 
 // add constants to external command functions
 const joinChannel = require("../command/musicCommands/join");
-const skipSong = require('./skip');
+// const skipSong = require('./skip');
 const skipTo = require("../command/musicCommands/skipTo");
 const pauseSong = require("../command/musicCommands/pause");
 const resumeSong = require("../command/musicCommands/resume");
@@ -49,7 +49,7 @@ module.exports = {
             .setDescription('Provide a song link, playlist link or keywords for a youtube search')
             .setRequired(true)
         ),
-    async execute(interaction) {
+    async execute(client, interaction) {
         // create songQueue variable for use in external command
         const message = interaction;
         const songQueue = queue.get(interaction.guild.id);
@@ -332,7 +332,7 @@ module.exports = {
                 .setAuthor({name: `Retrieving the playlist/album ${pName}`})
                 .setDescription("This will take a minute or two...")
                 .setColor("#0099E1")
-            await interaction.send({embeds: [searching]});
+            await txtchannel.send({embeds: [searching]});
 
             // loop through each song in the playlist
             for (track in (await playlist).tracks) {
@@ -352,7 +352,7 @@ module.exports = {
                 .setAuthor({name: "Success!"})
                 .setDescription(str + "\n" + "Owner: **" + owner + "**")
                 .setColor("#0099E1")
-            await interaction.send({embeds: [embed]});
+            await txtchannel.send({embeds: [embed]});
         }
         else {
             // if the song is not a URL, then use keywords to find that song on youtube through a search query.
@@ -375,7 +375,7 @@ module.exports = {
                     .setDescription("Couldn't find the requested song");
 
                 // return embed
-                return await interaction.send({embeds: [responseEmbed]});
+                return await txtchannel.send({embeds: [responseEmbed]});
             }
         }
 
@@ -430,7 +430,7 @@ module.exports = {
                         adapterCreator: interaction.guild.voiceAdapterCreator
                     });
                 queueConstructor.connection = connection;
-                videoPlayer(message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
+                videoPlayer(client, message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
             } catch (err) {
                 queue.delete(interaction.guild.id);
                 const embed = new EmbedBuilder()
@@ -440,11 +440,9 @@ module.exports = {
                 await interaction.send({embeds: [embed]});
                 throw err;
             }  
-            console.log(interaction)
         } else {
             // push song item regardless
             serverQueue.songs.push(song);
-            console.log(interaction)
 
             // if playlist is added after the serverQueue has been made
             if (ytpl.validateID(input)) {

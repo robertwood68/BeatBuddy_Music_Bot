@@ -26,7 +26,7 @@ module.exports = {
             .setName('target')
             .setDescription('Provide the member whose messages you want to delete')
         ),
-    async execute(interaction) {
+    async execute(client, interaction) {
         const amount = interaction.options.getNumber('amount');
         const reason = interaction.options.getString('reason');
         const target = interaction.options.getUser('target');

@@ -7,7 +7,7 @@ const { Client, Collection, GatewayIntentBits, Discord } = require('discord.js')
 require('@discordjs/voice');
 
 // Create a new client instance
-global.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
 // require dotenv to secure the bot token
 require('dotenv').config();
@@ -28,3 +28,5 @@ client.on("error", () => {client.login(process.env.BOT_TOKEN)});
 
 // below is the code to show which version of discord.js is installed
 // console.log(`Discord.js version is ${require("discord.js/package.json").version}`)
+
+module.exports = {client};

@@ -10,7 +10,7 @@ module.exports = {
         .setDescription('Shows helpful information about BeatBuddy')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
         .setDMPermission(false),
-    async execute(interaction) {
+    async execute(client, interaction) {
         const responseEmbed1 = new EmbedBuilder().setColor("#0099E1").setAuthor({name: "List of my basic commands:"}).setThumbnail(interaction.guild.iconURL());
         const responseEmbed2 = new EmbedBuilder().setColor("#0099E1").setAuthor({name: "List of my audioplayer commands:"}).setThumbnail(interaction.guild.iconURL());
         const responseEmbed3 = new EmbedBuilder().setColor("#0099E1").setAuthor({name: "Caution:"}).setThumbnail(interaction.guild.iconURL());

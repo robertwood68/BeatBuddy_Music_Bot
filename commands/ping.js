@@ -13,7 +13,7 @@ module.exports = {
         .setDescription('Replies with Pong!')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
         .setDMPermission(false),
-    async execute(interaction) {
+    async execute(client, interaction) {
         // hidden reply to command
         const responseEmbed = new EmbedBuilder().setColor("#0099E1");
         interaction.reply({embeds: [responseEmbed.setDescription(`Pong!`)]})

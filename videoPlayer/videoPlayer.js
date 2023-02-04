@@ -12,7 +12,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
  * 
  * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
  */
- const videoPlayer = async (message, guild, song, queue, connection) => {
+ const videoPlayer = async (client, message, guild, song, queue, connection) => {
     const songQueue = queue.get(guild.id);
     const voice = require('@discordjs/voice');
 
@@ -28,6 +28,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
     if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
         try {
             const player = createAudioPlayer();
+            client.player = player;
             const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
             const music = createAudioResource(stream)
             connection.subscribe(player)
@@ -66,6 +67,8 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
         }
     } else {
         try {
+            const player = createAudioPlayer();
+            client.player = player;
             const stream = await scClient.getSongInfo(song.url).then(function(data) {
                 return data.downloadProgressive();
             });
