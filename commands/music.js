@@ -1,23 +1,3 @@
-// const client = require("../index");
-
-// add constants to external command functions
-const joinChannel = require("../command/musicCommands/join");
-// const skipSong = require('./skip');
-const skipTo = require("../command/musicCommands/skipTo");
-const pauseSong = require("../command/musicCommands/pause");
-const resumeSong = require("../command/musicCommands/resume");
-const leaveChannel = require("../command/musicCommands/leave");
-const getQueue = require("../command/musicCommands/queue");
-const songInfo = require("../command/musicCommands/songInfo");
-const shuffle = require("../command/musicCommands/shuffle");
-const remove = require("../command/musicCommands/remove");
-const queueLength = require("../command/musicCommands/queueLength");
-const loopSong = require("../command/musicCommands/loopSong");
-const loopAll = require("../command/musicCommands/loopAll");
-const moveSong = require("../command/musicCommands/moveSong");
-
-// create variable for the video player function
-
 /**
  * Plays music in the current voice channel that the user who requested the song is in.
  *
@@ -61,6 +41,7 @@ module.exports = {
 
         // create the queue
         const serverQueue = queue.get(interaction.guild.id);
+        client.queue = queue;
 
         // song or link requested
         const input = interaction.options.getString('link-or-keywords');
@@ -84,13 +65,6 @@ module.exports = {
 
         // return embed
         await interaction.reply({embeds: [responseEmbed], ephemeral: true});
-
-        // Listener that clears the queue if manually disconnected by user.
-        client.on('voiceStateUpdate', (oldState, newState) => {
-            // check if someone connects or disconnects, and check if the bot is disconnecting
-            if (oldState.channelID === null || typeof oldState.channelID == 'undefined' || newState.id !== client.user.id) return;
-            return queue.delete(oldState.guild.id);
-        });
 
         // create song object to put in the map
         let song = {};
@@ -519,15 +493,9 @@ module.exports = {
             }
         }
 
-        // if (cmd === 'play' || cmd == 'p') {
-        // }
         // else if (cmd === 'join') joinChannel(message, message.guild, queue);
-        // else if (cmd === 'skip' || cmd === 'next') skipSong(message, serverQueue);
         // else if (cmd === 'skipto' || cmd === 'st') skipTo(message, args, serverQueue, message.guild, songQueue);
-        // else if (cmd === "pause") pauseSong(message, serverQueue);
-        // else if (cmd === "resume" || cmd === "unpause") resumeSong(message, serverQueue);
         // else if (cmd === 'leave' || cmd === 'stop') leaveChannel(message, serverQueue);
-        // else if (cmd === 'queue' || cmd === 'q') getQueue(message, message.guild, queue);
         // else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild, queue);
         // else if (cmd === 'shuffle') shuffle(message, message.guild, queue);
         // else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild, queue);

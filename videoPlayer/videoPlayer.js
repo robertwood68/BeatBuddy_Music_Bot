@@ -28,7 +28,6 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
     if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
         try {
             const player = createAudioPlayer();
-            client.player = player;
             const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
             const music = createAudioResource(stream)
             connection.subscribe(player)
@@ -68,7 +67,6 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
     } else {
         try {
             const player = createAudioPlayer();
-            client.player = player;
             const stream = await scClient.getSongInfo(song.url).then(function(data) {
                 return data.downloadProgressive();
             });

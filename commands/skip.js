@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits} = require('discord.js');
-const { serverQueue, connection } = require("./music");
+const videoPlayer = require('../videoPlayer/videoPlayer');
 /**
  * Skips from the current song to the next if the command requested is //skip
  * 
@@ -12,39 +12,40 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages, PermissionFlagsBits.Connect, PermissionFlagsBits.SendMessages)
     .setDMPermission(false), 
     async execute(client, interaction) {
-        client.player.stop(); // need to figure out how to skip with player
-        console.log("Skipped")
+        // create a variable for the current voice channel
+        let voiceChannel = interaction.member.voice.channelId;
+
+        // FailCases:
+        if (!voiceChannel) { // if user not in a voice channel 
+            // create embed to hold current song
+            const responseEmbed = new EmbedBuilder()
+                .setAuthor({name: "Error"})
+                .setColor("#0099E1")
+                .setDescription("You need to enter the voice channel");
+
+            // return embed
+            return await interaction.reply({embeds: [responseEmbed]});
+        } else if (typeof client.queue === 'undefined') { // if queue doesn't exist
+            const embed = new EmbedBuilder()
+                .setColor('#0099E1')
+                .setDescription('There are no songs to skip');
+            return await interaction.reply({embeds: [embed]});
+        } 
+        let songQueue = client.queue.get(`${interaction.guild.id}`);
         const embed = new EmbedBuilder()
-            .setColor('#0099E1')
-            .setDescription('Skipped the song');
-        return await interaction.reply({embeds: [embed]});
-        // if (!message.member.voice.channel) {
-        //     const embed = new Discord.MessageEmbed()
-        //         .setAuthor("Must be in the voice channel to skip a song")
-        //         .setColor("#0099E1")
-        //     return message.channel.send(embed);
-        // }
-        // if (!serverQueue) {
-        //     const embed = new Discord.MessageEmbed()
-        //         .setAuthor("There are no songs in the queue")
-        //         .setColor("#0099E1")
-        //     return message.channel.send(embed);
-        // }
-        // const embed = new Discord.MessageEmbed()
-        //         .setAuthor("Skipping the current song...")
-        //         .setColor("#0099E1")
-        // message.channel.send(embed);
-    
-        // // end the dispatcher to skip the song currently playing
-        // try {
-        //     serverQueue.connection.dispatcher.end();
-        // } catch (err) {
-        //     const embed = new Discord.MessageEmbed()
-        //         .setAuthor("Error")
-        //         .setDescription("Couldn't execute the command")
-        //         .setColor("#0099E1")
-        //     message.channel.send(embed);
-        // }
+                .setColor('#0099E1')
+                .setDescription('Skipping the song...');
+        await interaction.reply({embeds: [embed]});
+
+        try {
+            songQueue.songs.shift();
+            videoPlayer(client, interaction, interaction.guild, songQueue.songs[0], client.queue, songQueue.connection);
+            console.log("Skipped")
+        } catch (err) {
+            const failureEmbed = new EmbedBuilder()
+                .setColor('#0099E1')
+                .setDescription("Couldn't skip the song.");
+            return await interaction.channel.send({embeds: [failureEmbed]});
+        }
     }
 }
-// module.exports = skipSong;

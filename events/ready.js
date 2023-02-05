@@ -11,7 +11,14 @@ module.exports = {
 		console.log('BeatBuddy reporting for duty!');
         // sets the activity of the bot to how many servers it is currently in.
         client.user.setActivity(`over the music in ${client.guilds.cache.size} servers`, { type: ActivityType.Watching });
-		
+		// Listener that clears the queue if manually disconnected by user.
+		client.on('voiceStateUpdate', (oldState, newState) => {
+			// check if someone connects or disconnects
+			if (oldState.channel === null || typeof oldState.channel === 'undefined' || oldState.channel.id === null || typeof oldState.channel.id == 'undefined') return;
+			// check if the bot is disconnecting
+			if (newState.id !== client.user.id) return;
+			return client.queue.delete(`${oldState.guild.id}`);
+		});
 		// generates dependency report for djs voice
 		// const { generateDependencyReport } = require('@discordjs/voice');
 		// console.log(generateDependencyReport());
