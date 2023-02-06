@@ -1,15 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const videoPlayer = require('../videoPlayer/videoPlayer');
 
 /**
- * Stops the videoplayer if the command requested is //stop
- * 
- * @returns an arror message or leaves the channel
+ * Outputs song info for the current track
  */
 module.exports = {
     data: new SlashCommandBuilder() 
-        .setName('leave')
-        .setDescription('Kicks BeatBuddy from the voice channel and clears the queue')
+        .setName('songinfo')
+        .setDescription('Shows details of the current song, if available')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages, PermissionFlagsBits.Connect, PermissionFlagsBits.SendMessages)
         .setDMPermission(false), 
     async execute(client, interaction) {
@@ -31,6 +28,11 @@ module.exports = {
             if (typeof client.queue != 'undefined') { // if queue exists
                 if (typeof client.queue.get(`${interaction.guild.id}`) != 'undefined') { // if songqueue exists
                     const songQueue = client.queue.get(`${interaction.guild.id}`);
+                    // Pull song data
+                    const title = songQueue.songs[0].title;
+                    const artist = songQueue.songs[0].artist;
+                    const time = songQueue.songs[0].time;
+                    const date = songQueue.songs[0].date;
                     try {
                         if (songQueue.connection.joinConfig.channelId != interaction.member.voice.channelId) { // if client vc id != member vc id
                             // create embed
@@ -44,25 +46,25 @@ module.exports = {
                         // if no songs in songqueue
                         if (typeof songQueue.songs === 'undefined') return;
                         const responseEmbed = new EmbedBuilder()
+                            .setAuthor({name: title})
+                            .setThumbnail(songQueue.songs[0].thumbnail)
+                            .setDescription("**Artist:** " + artist + "\n**Length:** " + time + "\n**Date Published:** " + date)
                             .setColor("#0099E1")
-                            .setDescription("Leaving channel...");
                         // return embed
-                        await interaction.reply({embeds: [responseEmbed]});
-                        for (i = 0; i <= songQueue.songs.length; i++) {
-                            songQueue.songs.shift();
-                        }
-                        videoPlayer(client, interaction, interaction.guild, songQueue.songs[0], client.queue, songQueue.connection);
+                        return await interaction.reply({embeds: [responseEmbed]});
                     } catch (err) {
                         console.log(err)
                     }
+                } else {
+                    const responseEmbed = new EmbedBuilder()
+                        .setColor("#0099E1")
+                        .setDescription("There are no songs in the queue");
+                    // return embed
+                    return await interaction.reply({embeds: [responseEmbed]});
                 }
             }
         } catch (err) {
-            console.log(err)
-            const embed = new EmbedBuilder()
-                        .setDescription("Couldn't leave the channel")
-                        .setColor("#0099E1")
-            return await interaction.reply({embeds: [embed]});
+            console.log(err);
         }
     }
 }

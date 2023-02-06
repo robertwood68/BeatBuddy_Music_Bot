@@ -28,19 +28,28 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('disc
             
             if (typeof client.queue != 'undefined') { // if queue exists
                 const songQueue = client.queue.get(`${interaction.guild.id}`);
+                if (songQueue.connection.joinConfig.channelId != interaction.member.voice.channelId) { // if client vc id != member vc id
+                    // create embed
+                    const responseEmbed = new EmbedBuilder()
+                        .setAuthor({name: "Error"})
+                        .setColor("#0099E1")
+                        .setDescription("Enter the same channel as me");
+                    // return embed
+                    return await interaction.reply({embeds: [responseEmbed]});
+                } else {
                     if (!songQueue.connection.state.subscription.player.pause()) {
                         const embed = new EmbedBuilder()
                             .setAuthor({name: "Error"})
                             .setDescription("The song is already paused")
                             .setColor("#0099E1")
-                        return await interaction.reply({embeds: [embed]});
-                    } else {
-                        songQueue.connection.state.subscription.player.pause();
-                        const embed = new EmbedBuilder()
-                            .setAuthor({name: "Song paused!"})
-                            .setColor("#0099E1")
-                        return await interaction.reply({embeds: [embed]});
+                        return await interaction.reply({embeds: [embed]}); 
                     }
+                    songQueue.connection.state.subscription.player.pause();
+                    const embed = new EmbedBuilder()
+                        .setAuthor({name: "Song paused!"})
+                        .setColor("#0099E1")
+                    return await interaction.reply({embeds: [embed]});
+                }
             }
         } catch {
             const embed = new EmbedBuilder()

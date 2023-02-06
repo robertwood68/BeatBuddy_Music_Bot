@@ -21,6 +21,15 @@ module.exports = {
         let index = 1;
         let str = "";
 
+        if (songQueue.connection.joinConfig.channelId != interaction.member.voice.channelId) { // if client vc id != member vc id
+            // create embed
+            const responseEmbed = new EmbedBuilder()
+                .setAuthor({name: "Error"})
+                .setColor("#0099E1")
+                .setDescription("Enter the same channel as me");
+            // return embed
+            return await interaction.reply({embeds: [responseEmbed]});
+        }
         try {
             if (songQueue.songs[0]) str += `**Currently playing:**\n ${songQueue.songs[0].title}\n\n`;
 

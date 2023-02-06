@@ -13,98 +13,108 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
  * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
  */
  const videoPlayer = async (client, message, guild, song, queue, connection) => {
-    let songQueue = queue.get(guild.id);
-    const voice = require('@discordjs/voice');
+    try {
+        let songQueue = queue.get(guild.id);
+        const voice = require('@discordjs/voice');
 
-    if (!song) {
+        if (!song) {
+            const responseEmbed = new EmbedBuilder()
+                .setAuthor({name: "No more songs in the queue."})
+                .setColor("#0099E1")
+            await message.channel.send({embeds: [responseEmbed]});
+            voice.getVoiceConnection(guild.id).disconnect();
+            queue.delete(guild.id);
+            return;
+        }
+        if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
+            try {
+                const player = createAudioPlayer();
+                const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
+                const music = createAudioResource(stream)
+                connection.subscribe(player)
+                player.play(music)
+                player.on('idle', () => {
+                    songQueue.songs.shift();
+                    videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                })
+
+                // string to set as description in embed
+                let str = "";
+                str += `**Now Playing:**\n ${song.title}`;
+
+                // create embed to hold current song
+                const responseEmbed = new EmbedBuilder()
+                    .setColor("#0099E1")
+                    .setDescription(str)
+                    .setThumbnail(song.thumbnail);
+
+                // return now playing embed
+                await message.channel.send({embeds: [responseEmbed]});
+                return;
+            } catch (err){
+                const responseEmbed = new EmbedBuilder()
+                    .setAuthor({name: "Failure!"})
+                    .setDescription("Unable to play the song.  Attempting to skip to the next one.")
+                    .setColor("#0099E1");
+
+                songQueue.songs.shift();
+                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+
+                // return error message
+                console.log(err);
+                await message.channel.send({embeds: [responseEmbed]});
+                return;
+            }
+        } else {
+            try {
+                const player = createAudioPlayer();
+                const stream = await scClient.getSongInfo(song.url).then(function(data) {
+                    return data.downloadProgressive();
+                });
+                const music = createAudioResource(stream)
+                connection.subscribe(player)
+                player.play(music)
+                player.on('finish', () => {
+                    songQueue.songs.shift();
+                    videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                });
+
+                // string to set as description in embed
+                let str = "";
+                str += `**Now Playing:**\n ${song.title}`;
+
+                // create embed to hold current song
+                const responseEmbed = new EmbedBuilder()
+                    .setColor("#0099E1")
+                    .setDescription(str)
+                    .setThumbnail(song.thumbnail);
+
+                // // return now playing embed
+                await message.channel.send({embeds: [responseEmbed]});
+                return;
+            } catch (err) {
+                const responseEmbed = new EmbedBuilder()
+                    .setAuthor({name: "Failure!"})
+                    .setDescription("Unable to play the song.  Attempting to skip to the next one.")
+                    .setColor("#0099E1");
+
+                songQueue.songs.shift();
+                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+
+                // return error message
+                console.log(err);
+                await message.channel.send({embeds: [responseEmbed]});
+                return;
+            }
+        }
+    } catch (err) {
+        console.log(err);
         const responseEmbed = new EmbedBuilder()
-            .setAuthor({name: "No more songs in the queue."})
             .setColor("#0099E1")
+            .setDescription("Couldn't play the song");
+
+        // // return now playing embed
         await message.channel.send({embeds: [responseEmbed]});
-        voice.getVoiceConnection(guild.id).disconnect();
-        queue.delete(guild.id);
-        return;
-    }
-    if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
-        try {
-            const player = createAudioPlayer();
-            const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
-            const music = createAudioResource(stream)
-            connection.subscribe(player)
-            player.play(music)
-            player.on('idle', () => {
-                songQueue.songs.shift();
-                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
-            })
-
-            // string to set as description in embed
-            let str = "";
-            str += `**Now Playing:**\n ${song.title}`;
-
-            // create embed to hold current song
-            const responseEmbed = new EmbedBuilder()
-                .setColor("#0099E1")
-                .setDescription(str)
-                .setThumbnail(song.thumbnail);
-
-            // return now playing embed
-            await message.channel.send({embeds: [responseEmbed]});
-            return;
-        } catch (err){
-            const responseEmbed = new EmbedBuilder()
-                .setAuthor({name: "Failure!"})
-                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
-                .setColor("#0099E1");
-
-            songQueue.songs.shift();
-            videoPlayer(message, guild, songQueue.songs[0], queue, connection);
-
-            // return error message
-            console.log(err);
-            await message.channel.send({embeds: [responseEmbed]});
-            return;
-        }
-    } else {
-        try {
-            const player = createAudioPlayer();
-            const stream = await scClient.getSongInfo(song.url).then(function(data) {
-                return data.downloadProgressive();
-            });
-            const music = createAudioResource(stream)
-            connection.subscribe(player)
-            player.play(music)
-            player.on('finish', () => {
-                songQueue.songs.shift();
-                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
-            });
-
-            // string to set as description in embed
-            let str = "";
-            str += `**Now Playing:**\n ${song.title}`;
-
-            // create embed to hold current song
-            const responseEmbed = new EmbedBuilder()
-                .setColor("#0099E1")
-                .setDescription(str)
-                .setThumbnail(song.thumbnail);
-
-            // // return now playing embed
-            await message.channel.send({embeds: [responseEmbed]});
-            return;
-        } catch (err) {
-            const responseEmbed = new EmbedBuilder()
-                .setAuthor({name: "Failure!"})
-                .setDescription("Unable to play the song.  Attempting to skip to the next one.")
-                .setColor("#0099E1");
-
-            songQueue.songs.shift();
-            videoPlayer(message, guild, songQueue.songs[0], queue, connection);
-
-            // return error message
-            console.log(err);
-            await message.channel.send({embeds: [responseEmbed]});
-            return;
-        }
     }
 }
 module.exports = videoPlayer;

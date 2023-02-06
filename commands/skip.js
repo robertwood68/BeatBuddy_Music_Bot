@@ -32,6 +32,15 @@ module.exports = {
             return await interaction.reply({embeds: [embed]});
         } 
         let songQueue = client.queue.get(`${interaction.guild.id}`);
+        if (songQueue.connection.joinConfig.channelId != interaction.member.voice.channelId) { // if client vc id != member vc id
+            // create embed
+            const responseEmbed = new EmbedBuilder()
+                .setAuthor({name: "Error"})
+                .setColor("#0099E1")
+                .setDescription("Enter the same channel as me");
+            // return embed
+            return await interaction.reply({embeds: [responseEmbed]});
+        }
         const embed = new EmbedBuilder()
                 .setColor('#0099E1')
                 .setDescription('Skipping the song...');
