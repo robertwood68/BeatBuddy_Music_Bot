@@ -35,7 +35,7 @@ module.exports = {
         const songQueue = queue.get(interaction.guild.id);
 
         // create a variable for the current voice channel
-        let voiceChannel = interaction.member.voice.channelId;
+        const voiceChannel = interaction.member.voice.channelId;
         let txtchannel = interaction.channel;
 
 

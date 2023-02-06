@@ -13,7 +13,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
  * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
  */
  const videoPlayer = async (client, message, guild, song, queue, connection) => {
-    const songQueue = queue.get(guild.id);
+    let songQueue = queue.get(guild.id);
     const voice = require('@discordjs/voice');
 
     if (!song) {
