@@ -18,7 +18,9 @@ module.exports = {
 				if (oldState.channel === null || typeof oldState.channel === 'undefined' || oldState.channel.id === null || typeof oldState.channel.id == 'undefined') return;
 				// check if the bot is disconnecting
 				if (newState.id !== client.user.id) return;
-				return client.queue.delete(`${oldState.guild.id}`);
+				if (typeof client.queue != 'undefined') {
+					return client.queue.delete(`${oldState.guild.id}`);
+				}
 			} catch (err) {
 				console.log(err);
 			}

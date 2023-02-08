@@ -49,7 +49,7 @@ module.exports = {
                         // return embed
                         await interaction.reply({embeds: [responseEmbed]});
                         for (i = 0; i <= songQueue.songs.length; i++) {
-                            songQueue.songs.shift();
+                            songQueue.songs.splice(0, songQueue.songs.length);
                         }
                         videoPlayer(client, interaction, interaction.guild, songQueue.songs[0], client.queue, songQueue.connection);
                     } catch (err) {

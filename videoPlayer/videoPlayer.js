@@ -114,7 +114,15 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
             .setDescription("Couldn't play the song");
 
         // // return now playing embed
-        await message.channel.send({embeds: [responseEmbed]});
+        try {
+            if (typeof message != 'undefined') {
+                if (typeof message.channel != 'undefined') {
+                    return await message.channel.send({embeds: [responseEmbed]});
+                }
+            }
+        } catch (err) {
+            return console.log(err);
+        }
     }
 }
 module.exports = videoPlayer;
