@@ -162,7 +162,7 @@ module.exports = {
                 await txtchannel.send({embeds: [searchEmbed]});
                 // loop through each song in the playlist
                 for (const track of album) {
-                    console.log(track)
+                   
                     const video = await videoFinder(track.name + " " + track.artist + " lyrics");
                     // if there is a video, create the song object and add its details, then push it to the videos array.
                     if (video) {
@@ -206,8 +206,6 @@ module.exports = {
 
                 // get playlist name
                 const playlistName = playlistData.name;
-                console.log(playlistData)
-                console.log(playlist)
                 // get playlist thumbnail
                 const playlistThumbnail = playlistData.coverArt.sources[0].url;
                 // get owner of the playlist
@@ -236,7 +234,6 @@ module.exports = {
                         let data = await getPreview(input).then(function(data) {
                             return data;
                         });
-                        console.log(data)
                         let thumbnail = data.image;
                         let date = data.date;
                         if (typeof date != 'undefined') {
