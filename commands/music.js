@@ -14,6 +14,8 @@ const fetch = require('isomorphic-unfetch');
 const soundcloud = require('soundcloud-scraper');
 const { SoundCloud } = require("scdl-core");
 const scdl = new SoundCloud();
+SoundCloud.connect();
+SoundCloud.client_id = (process.env.SOUNDCLOUD_API_KEY);
 const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
 const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
 const queue = new Map();
@@ -111,7 +113,7 @@ module.exports = {
                 return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
             }
             
-            const video = await videoFinder(data.title + data.artist + "lyrics");
+            const video = await videoFinder(data.title + " " + data.artist + "lyrics");
             if (video) {
                 // set specific song information
                 song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username}
@@ -141,9 +143,9 @@ module.exports = {
                 // get playlist name
                 const albumName = albumData.name;
                 // get playlist thumbnail
-                const albumThumbnail = albumData.images[0].url;
+                const albumThumbnail = albumData.coverArt.sources[0].url;
                 // get owner of the playlist
-                const albumArtist = albumData.artists[0].name;
+                const albumArtist = albumData.subtitle;
 
                 // function to handle youtube searches
                 const videoFinder = async (query) => {
@@ -157,14 +159,15 @@ module.exports = {
                     .setColor("#0099E1")
                     .setDescription("Please wait: This could take up to a minute...");
 
-                await interaction.send({embeds: [searchEmbed]});
+                await txtchannel.send({embeds: [searchEmbed]});
                 // loop through each song in the playlist
                 for (const track of album) {
-                    const video = await videoFinder(track.name + track.artists[0].name + "lyrics");
+                    console.log(track)
+                    const video = await videoFinder(track.name + " " + track.artist + " lyrics");
                     // if there is a video, create the song object and add its details, then push it to the videos array.
                     if (video) {
                         // set specific song information
-                        let song = { title: track.name, url: video.url, artist: track.artists[0].name, time: video.duration.timestamp, date: albumData.release_date, thumbnail: albumData.images[0].url, requester: interaction.user.username};
+                        let song = { title: track.name, url: video.url, artist: track.artist, time: video.duration.timestamp, date: albumData.releaseDate, thumbnail: albumData.coverArt.sources[0].url, requester: interaction.user.username};
                         videos.push(song);
                     }
                 };
@@ -178,13 +181,14 @@ module.exports = {
                     .setColor("#0099E1")
                     .setDescription(str + "\n" + "Artist: **" + albumArtist + "**")
                     .setThumbnail(albumThumbnail);
-                await interaction.send({embeds: [embed]});
-            } catch {
+                await txtchannel.send({embeds: [embed]});
+            } catch (err) {
+                console.log(err);
                 const embed = new EmbedBuilder()
                     .setAuthor({name: "Failure"})
                     .setColor("#0099E1")
                     .setDescription("Can't play the album requested");
-                message.channel.send({embeds: [embed]});
+                await txtchannel.send({embeds: [embed]});
             }
         }
         else if (input.includes("https://") && input.includes('spotify') && input.includes('playlist')) { // Sp.Playlist
@@ -202,10 +206,12 @@ module.exports = {
 
                 // get playlist name
                 const playlistName = playlistData.name;
+                console.log(playlistData)
+                console.log(playlist)
                 // get playlist thumbnail
-                const playlistThumbnail = playlistData.images[0].url;
+                const playlistThumbnail = playlistData.coverArt.sources[0].url;
                 // get owner of the playlist
-                const owner = playlistData.owner.display_name;
+                const owner = playlistData.subtitle;
 
                 // function to handle youtube searches
                 const videoFinder = async (query) => {
@@ -218,15 +224,27 @@ module.exports = {
                     .setAuthor({name: `Retrieving the playlist ${playlistName}`})
                     .setDescription("Please wait: This will take 1 - 2 minutes...")
                     .setColor("#0099E1")
-                await interaction.send({embeds: [searching]});
+                await txtchannel.send({embeds: [searching]});
 
                 // loop through each song in the playlist
                 for (const track of playlist) {
-                    const video = await videoFinder(track.name + track.artists[0].name + "lyrics");
+                    const video = await videoFinder(track.name + " " + track.artist + "lyrics");
                     // if there is a video, create the song object and add its details, then push it to the videos array.
                     if (video) {
                         // set specific song information
-                        let song = { title: track.name, url: video.url, artist: track.artists[0].name, time: video.duration.timestamp, date: track.album.release_date, thumbnail: track.album.images[0].url, requester: interaction.user.username};
+                        // retrive the data for the song from the spotify link
+                        let data = await getPreview(input).then(function(data) {
+                            return data;
+                        });
+                        console.log(data)
+                        let thumbnail = data.image;
+                        let date = data.date;
+                        if (typeof date != 'undefined') {
+                            date = data.date.replace(/\T.+/, '');
+                        } else {
+                            date = "Unavailable"
+                        }
+                        let song = { title: track.name, url: video.url, artist: track.artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username};
                         videos.push(song);
                     }
                 };
@@ -240,20 +258,21 @@ module.exports = {
                     .setAuthor({name: "Success!"})
                     .setDescription(str + "\n" + "Owner: **" + owner + "**")
                     .setColor("#0099E1")
-                await interaction.send({embeds: [embed]});
-            } catch {
+                await txtchannel.send({embeds: [embed]});
+            } catch (err) {
+                console.log(err)
                 if (url.includes("37")) {
                     const embed = new EmbedBuilder()
                         .setAuthor({name: "Error: Blend Detected"})
                         .setDescription("BeatBuddy does not support Spotify Blends.")
                         .setColor("#0099E1")
-                    await interaction.send({embeds: [embed]});
+                    await txtchannel.send({embeds: [embed]});
                 } else {
                     const embed = new EmbedBuilder()
                         .setAuthor({name: "Error: Couldn't Get Playlist"})
                         .setDescription("Try again, and make sure to not send commands until the playlist has been retrieved.")
                         .setColor("#0099E1")
-                    await interaction.send({embeds: [embed]});
+                    await txtchannel.send({embeds: [embed]});
                 }
             }
         } 
@@ -285,48 +304,55 @@ module.exports = {
             (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && input.includes("?") && !input.includes("in=")) 
             || (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && !input.includes("?"))) { 
 
-            let pURL = input;
-            if (input.includes("?")) {
-                pURL = input.replace(/\?.+/, '');
-            }
-            
-            const p = (await scdl.playlists.getPlaylist(pURL));
-            const pName = p.title;
-            const pThumb = p.artwork_url;
-            let pThumbnail = "";
-            if (pThumb != "") {
-                pThumbnail = pThumb;
-            }
-            const owner = p.user.username;
-
-            const playlist = scdl.playlists.getPlaylist(pURL);
-
-            // return a message embed saying that the playlist is being gotten
-            const searching = new EmbedBuilder()
-                .setAuthor({name: `Retrieving the playlist/album ${pName}`})
-                .setDescription("This will take a minute or two...")
-                .setColor("#0099E1")
-            await txtchannel.send({embeds: [searching]});
-
-            // loop through each song in the playlist
-            for (track in (await playlist).tracks) {
-                let plSong = (await playlist).tracks[track];
-
-                if (plSong) {
-                    let song = {title: plSong.title, url: plSong.permalink_url, artist: plSong.user.username, time: (plSong.duration/60000).toPrecision(3).replace(".", ":"), date: plSong.created_at.replace(/\T.+/, ''), thumbnail: plSong.artwork_url, requester: interaction.user.username};
-                    videos.push(song)
+            try {
+                let pURL = input;
+                if (input.includes("?")) {
+                    pURL = input.replace(/\?.+/, '');
                 }
-            }
+                
+                let p;
+                let getPlaylist = SoundCloud.playlists.getPlaylist(pURL)
+                await getPlaylist.then(function(result) {
+                    p = result;
+                })
 
-            // return a message embed saying that the playlist was found
-            let str = "";
-            str += `**${pName}** has been added \n`;
-            const embed = new EmbedBuilder()
-                .setThumbnail(pThumbnail)
-                .setAuthor({name: "Success!"})
-                .setDescription(str + "\n" + "Owner: **" + owner + "**")
-                .setColor("#0099E1")
-            await txtchannel.send({embeds: [embed]});
+                const pName = p.title;
+                const pThumb = p.artwork_url;
+                let pThumbnail = "";
+                if (pThumb != "") {
+                    pThumbnail = pThumb;
+                }
+                const owner = p.user.username;
+
+                // return a message embed saying that the playlist is being gotten
+                const searching = new EmbedBuilder()
+                    .setAuthor({name: `Retrieving the playlist/album ${pName}`})
+                    .setDescription("This will take a minute or two...")
+                    .setColor("#0099E1")
+                await txtchannel.send({embeds: [searching]});
+
+                // loop through each song in the playlist
+                for (track in (await p).tracks) {
+                    let plSong = (await p).tracks[track];
+
+                    if (plSong) {
+                        let song = {title: plSong.title, url: plSong.permalink_url, artist: plSong.user.username, time: (plSong.duration/60000).toPrecision(3).replace(".", ":"), date: plSong.created_at.replace(/\T.+/, ''), thumbnail: plSong.artwork_url, requester: interaction.user.username};
+                        videos.push(song)
+                    }
+                }
+
+                // return a message embed saying that the playlist was found
+                let str = "";
+                str += `**${pName}** has been added \n`;
+                const embed = new EmbedBuilder()
+                    .setThumbnail(pThumbnail)
+                    .setAuthor({name: "Success!"})
+                    .setDescription(str + "\n" + "Owner: **" + owner + "**")
+                    .setColor("#0099E1")
+                await txtchannel.send({embeds: [embed]});
+            } catch (err) {
+                console.log(err);
+            }
         }
         else {
             // if the song is not a URL, then use keywords to find that song on youtube through a search query.
