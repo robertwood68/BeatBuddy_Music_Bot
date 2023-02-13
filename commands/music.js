@@ -43,8 +43,7 @@ module.exports = {
 
         // create the queue
         const serverQueue = queue.get(interaction.guild.id);
-        client.queue = queue;
-
+        queue.set(interaction.guild.id, serverQueue);
         // song or link requested
         const input = interaction.options.getString('link-or-keywords');
 
@@ -379,7 +378,7 @@ module.exports = {
         // if there is no serverQueue
         if (!serverQueue) {
             // create a new constructor for the queue
-            const queueConstructor = {
+            let queueConstructor = {
                 voice_channel: voiceChannel,
                 //text_channel: message.channel,
                 connection: null,
@@ -427,6 +426,8 @@ module.exports = {
                         adapterCreator: interaction.guild.voiceAdapterCreator
                     });
                 queueConstructor.connection = connection;
+                client.queue = queue;
+                console.log(client.queue)
                 videoPlayer(client, message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
             } catch (err) {
                 queue.delete(interaction.guild.id);
