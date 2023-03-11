@@ -74,7 +74,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                 const music = createAudioResource(stream)
                 connection.subscribe(player)
                 player.play(music)
-                player.on('finish', () => {
+                player.on('idle', () => {
                     songQueue.songs.shift();
                     videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
                 });
