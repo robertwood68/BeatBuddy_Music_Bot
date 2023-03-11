@@ -35,7 +35,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                 player.play(music)
                 player.on('idle', () => {
                     songQueue.songs.shift();
-                    videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                    videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
                 })
 
                 // string to set as description in embed
@@ -58,7 +58,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                     .setColor("#0099E1");
 
                 songQueue.songs.shift();
-                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
 
                 // return error message
                 console.log(err);
@@ -76,7 +76,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                 player.play(music)
                 player.on('finish', () => {
                     songQueue.songs.shift();
-                    videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                    videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
                 });
 
                 // string to set as description in embed
@@ -99,7 +99,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                     .setColor("#0099E1");
 
                 songQueue.songs.shift();
-                videoPlayer(message, guild, songQueue.songs[0], queue, connection);
+                videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
 
                 // return error message
                 console.log(err);

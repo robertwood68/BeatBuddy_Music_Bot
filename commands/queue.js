@@ -17,6 +17,18 @@ module.exports = {
             return await interaction.reply({embeds: [embed]});
         }
         const songQueue = client.queue.get(`${interaction.guild.id}`);
+        if (typeof songQueue === 'undefined') { // if queue doesn't exist
+            const embed = new EmbedBuilder()
+                .setColor('#0099E1')
+                .setDescription('There are no songs in the queue');
+            return await interaction.reply({embeds: [embed]});
+        }
+        if (typeof songQueue.connection === 'undefined') { // if queue doesn't exist
+            const embed = new EmbedBuilder()
+                .setColor('#0099E1')
+                .setDescription('There are no songs in the queue');
+            return await interaction.reply({embeds: [embed]});
+        }
 
         let index = 1;
         let str = "";

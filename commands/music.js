@@ -425,6 +425,14 @@ module.exports = {
                         guildId: interaction.guild.id,
                         adapterCreator: interaction.guild.voiceAdapterCreator
                     });
+                const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
+                    const newUdp = Reflect.get(newNetworkState, 'udp');
+                    clearInterval(newUdp?.keepAliveInterval);
+                }
+                connection.on('stateChange', (oldState, newState) => {
+                    Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
+                    Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
+                });
                 queueConstructor.connection = connection;
                 client.queue = queue;
                 console.log(client.queue)
