@@ -18,7 +18,7 @@
     "fs": "^0.0.1-security",
     "isomorphic-unfetch": "^3.1.0",
     "libsodium-wrappers": "^0.7.10",
-    "npm": "8.18.0",
+    "npm": "9.8.0",
     "opusscript": "^0.0.8",
     "play-dl": "^1.8.8",
     "scdl-core": "^1.0.20",
