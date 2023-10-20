@@ -32,6 +32,12 @@ module.exports = {
             return await interaction.reply({embeds: [embed]});
         } 
         let songQueue = client.queue.get(`${interaction.guild.id}`);
+        if (typeof songQueue.connection === 'undefined') {
+            const embed = new EmbedBuilder()
+                .setColor('#0099E1')
+                .setDescription('There are no songs to skip');
+            return await interaction.reply({embeds: [embed]});
+        }
         if (songQueue.connection.joinConfig.channelId != interaction.member.voice.channelId) { // if client vc id != member vc id
             // create embed
             const responseEmbed = new EmbedBuilder()
