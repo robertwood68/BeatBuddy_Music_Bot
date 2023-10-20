@@ -95,36 +95,46 @@ module.exports = {
             }
         } 
         else if (input.includes("https://") && input.includes('spotify') && !input.includes('playlist') && !input.includes('album')) { // Sp.Song
+            try{ 
+                // retrive the data for the song from the spotify link
+                let data = await getPreview(input).then(function(data) {
+                    return data;
+                });
 
-            // retrive the data for the song from the spotify link
-            let data = await getPreview(input).then(function(data) {
-                return data;
-            });
+                // set details of song from spotify
+                let date = data.date.replace(/\T.+/, '');
+                let title = data.title;
+                let artist = data.artist;
+                let thumbnail = data.image;
 
-            // set details of song from spotify
-            let date = data.date.replace(/\T.+/, '');
-            let title = data.title;
-            let artist = data.artist;
-            let thumbnail = data.image;
-
-            const videoFinder = async (query) => {
-                const videoResult = await ytSearch(query);
-                return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
-            }
-            
-            const video = await videoFinder(data.title + " " + data.artist + "lyrics");
-            if (video) {
-                // set specific song information
-                song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username}
-            } else {
+                const videoFinder = async (query) => {
+                    const videoResult = await ytSearch(query);
+                    return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+                }
+                
                 // if no results, send error message
                 const responseEmbed = new EmbedBuilder()
-                    .setAuthor({name: "Error"})
                     .setColor("#0099E1")
-                    .setDescription("Couldn't find the requested song");
+                    .setDescription("Retrieving Song Info...");
+                // response embed
+                await txtchannel.send({embeds: [responseEmbed]});
+                
+                const video = await videoFinder(data.title + " " + data.artist + "lyrics");
+                if (video) {
+                    // set specific song information
+                    song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username}
+                } else {
+                    // if no results, send error message
+                    const responseEmbed = new EmbedBuilder()
+                        .setAuthor({name: "Error"})
+                        .setColor("#0099E1")
+                        .setDescription("Couldn't find the requested song");
 
-                // return embed
-                return await interaction.send({embeds: [responseEmbed]});
+                    // return embed
+                    return await interaction.send({embeds: [responseEmbed]});
+                }
+            } catch (err) {
+                console.log(err)
             }
         } 
         else if (input.includes("https://") && input.includes('spotify') && !input.includes('playlist') && input.includes('album')) { 
@@ -145,6 +155,14 @@ module.exports = {
                 const albumThumbnail = albumData.coverArt.sources[0].url;
                 // get owner of the playlist
                 const albumArtist = albumData.subtitle;
+
+                // searching embed
+                // const responseEmbed = new EmbedBuilder()
+                //     .setAuthor('Fetching Album')
+                //     .setColor("#0099E1")
+                //     .setDescription("Please wait");
+                // // response embed
+                // await interaction.send({embeds: [responseEmbed]});
 
                 // function to handle youtube searches
                 const videoFinder = async (query) => {
@@ -210,6 +228,14 @@ module.exports = {
                 // get owner of the playlist
                 const owner = playlistData.subtitle;
 
+                // // if searching embed
+                // const responseEmbed = new EmbedBuilder()
+                //     .setAuthor('Fetching Playlist Data')
+                //     .setColor("#0099E1")
+                //     .setDescription("Please wait");
+                // // response embed
+                // await interaction.send({embeds: [responseEmbed]});
+
                 // function to handle youtube searches
                 const videoFinder = async (query) => {
                     const videoResult = await ytSearch(query);
@@ -219,7 +245,7 @@ module.exports = {
                 // // return a message embed saying that the playlist is being gotten
                 const searching = new EmbedBuilder()
                     .setAuthor({name: `Retrieving the playlist ${playlistName}`})
-                    .setDescription("Please wait: This will take 1 - 2 minutes...")
+                    .setDescription("This could take 1 - 2 minutes...")
                     .setColor("#0099E1")
                 await txtchannel.send({embeds: [searching]});
 
@@ -276,25 +302,28 @@ module.exports = {
             (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && input.includes('?in='))
              || (input.includes("https://") && input.includes('soundcloud') && !input.includes('sets') && input.includes("?")) 
              || (input.includes("https://") && input.includes('soundcloud') && !input.includes('sets') && !input.includes("?"))) { 
+            try {
+                // get the track info
+                let pURL = input;
+                if (input.includes("sets") && input.includes("?in=")) {
+                    pURL = input.replace(/\?.+/, '');
+                } else if (!input.includes("sets") && input.includes("?")) {
+                    pURL = input.replace(/\?.+/, '');
+                }
+                const track = await scClient.getSongInfo(pURL).then(function(data) {
+                    return data;
+                });
 
-            // get the track info
-            let pURL = input;
-            if (input.includes("sets") && input.includes("?in=")) {
-                pURL = input.replace(/\?.+/, '');
-            } else if (!input.includes("sets") && input.includes("?")) {
-                pURL = input.replace(/\?.+/, '');
+                const date = (track.publishedAt.toISOString().replace(/\T.+/, ''));
+
+                // set the details for the song that gets pushed
+                song = {title: track.title, url: track.url, artist: track.author.name, time: (track.duration/60000).toPrecision(3).replace(".", ":"), date: date, thumbnail: track.thumbnail, requester: interaction.user.username};
+
+                // push the song to the videos queue
+                videos.push(song);
+            } catch (err) {
+                console.log(err);
             }
-            const track = await scClient.getSongInfo(pURL).then(function(data) {
-                return data;
-            });
-
-            const date = (track.publishedAt.toISOString().replace(/\T.+/, ''));
-
-            // set the details for the song that gets pushed
-            song = {title: track.title, url: track.url, artist: track.author.name, time: (track.duration/60000).toPrecision(3).replace(".", ":"), date: date, thumbnail: track.thumbnail, requester: interaction.user.username};
-
-            // push the song to the videos queue
-            videos.push(song);
         }
         else if (
             (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && input.includes("?") && !input.includes("in=")) 
@@ -435,7 +464,6 @@ module.exports = {
                 });
                 queueConstructor.connection = connection;
                 client.queue = queue;
-                console.log(client.queue)
                 videoPlayer(client, message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
             } catch (err) {
                 queue.delete(interaction.guild.id);
