@@ -45,7 +45,7 @@ module.exports = {
         const serverQueue = queue.get(interaction.guild.id);
         queue.set(interaction.guild.id, serverQueue);
         // song or link requested
-        const input = interaction.options.getString('link-or-keywords');
+        let input = interaction.options.getString('link-or-keywords');
 
         // FailCases:
         if (!voiceChannel) {

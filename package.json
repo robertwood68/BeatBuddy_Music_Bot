@@ -2,7 +2,7 @@
   "name": "beatbuddybot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "beatbuddy.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,7 +25,7 @@
     "sodium-native": "^4.0.1",
     "soundcloud-scraper": "^4.0.1",
     "soundcloud.ts": "^0.4.5",
-    "spotify-url-info": "^3.0.2",
+    "spotify-url-info": "^3.2.6",
     "youtube": "^0.1.0",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.2",
