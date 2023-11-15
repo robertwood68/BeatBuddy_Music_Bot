@@ -11,6 +11,7 @@ COPY package*.json ./
 RUN npm install
 RUN npm install fluent-ffmpeg
 RUN npm install ffmpeg-static
+RUN npm install ytdl-core@4.9.1
 
 # Copy the rest of your application's source code to the container
 COPY . .
