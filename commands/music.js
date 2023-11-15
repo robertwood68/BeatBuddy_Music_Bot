@@ -45,7 +45,8 @@ module.exports = {
         const serverQueue = queue.get(interaction.guild.id);
         queue.set(interaction.guild.id, serverQueue);
         // song or link requested
-        let input = interaction.options.getString('link-or-keywords');
+        let input = await interaction.options.getString('link-or-keywords');
+        console.log(input)
 
         // FailCases:
         if (!voiceChannel) {
@@ -419,9 +420,10 @@ module.exports = {
 
             // push the song item regardless
             queueConstructor.songs.push(song);
-            
+            console.log("made it here")
             // push playlist items into queue if playlist is requested
             if (ytpl.validateID(input)) {
+                console.log("made it here")
                 for (i = 0; i <= videos.length - 1; i++) {
                     queueConstructor.songs.push(videos[i]);
                 }
@@ -476,11 +478,13 @@ module.exports = {
             }  
         } else {
             // push song item regardless
+            console.log("made it here")
             serverQueue.songs.push(song);
 
             // if playlist is added after the serverQueue has been made
+            console.log("made it to validate")
             if (ytpl.validateID(input)) {
-
+                console.log("made it here")
                 // get playlist name
                 const playlistName = (await ytpl(input)).title;
                 // set playlist thumbnail as server image
