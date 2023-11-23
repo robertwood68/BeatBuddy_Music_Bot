@@ -1,9 +1,9 @@
 version: '3'
 services:
   beatbuddy:
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: beatbuddybot
     ports:
       - "42069:42069"

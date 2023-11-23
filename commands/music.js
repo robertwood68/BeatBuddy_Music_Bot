@@ -417,55 +417,71 @@ module.exports = {
             
             // set values in the map as guild id number and queueConstructor
             queue.set(interaction.guild.id, queueConstructor);
-
-            // push the song item regardless
-            queueConstructor.songs.push(song);
-            console.log("made it here")
+            
             // push playlist items into queue if playlist is requested
-            if (ytpl.validateID(input)) {
-                console.log("made it here")
-                for (i = 0; i <= videos.length - 1; i++) {
-                    queueConstructor.songs.push(videos[i]);
+            console.log("Entering playlist try/catch...")
+            try {
+                 // push the song item regardless
+                queueConstructor.songs.push(song);
+                
+                if (ytpl.validateID(input)) {
+                    queueConstructor.songs.push(song);
+                    console.log("made it in validate")
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                } else if (input.includes('spotify') && input.includes('album')) {
+                    console.log("made it in spotify album")
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                } else if (input.includes('spotify') && input.includes('playlist')) {
+                    console.log("made it in spotify playlist")
+                    for (i = 0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
+                } else if ((input.includes("https://") && input.includes('soundcloud') && input.includes('sets')) || (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && !input.includes("?"))) {
+                    console.log("made it in soundcloud sets")
+                    for (i=0; i <= videos.length - 1; i++) {
+                        queueConstructor.songs.push(videos[i]);
+                    }
+                    // remove the undefined push from song info outside of loop
+                    queueConstructor.songs.shift();
                 }
-                // remove the undefined push from song info outside of loop
-                queueConstructor.songs.shift();
-            } else if (input.includes('spotify') && input.includes('album')) {
-                for (i = 0; i <= videos.length - 1; i++) {
-                    queueConstructor.songs.push(videos[i]);
-                }
-                // remove the undefined push from song info outside of loop
-                queueConstructor.songs.shift();
-            } else if (input.includes('spotify') && input.includes('playlist')) {
-                for (i = 0; i <= videos.length - 1; i++) {
-                    queueConstructor.songs.push(videos[i]);
-                }
-                // remove the undefined push from song info outside of loop
-                queueConstructor.songs.shift();
-            } else if ((input.includes("https://") && input.includes('soundcloud') && input.includes('sets')) || (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && !input.includes("?"))) {
-                for (i=0; i <= videos.length - 1; i++) {
-                    queueConstructor.songs.push(videos[i]);
-                }
-                // remove the undefined push from song info outside of loop
-                queueConstructor.songs.shift();
+            } catch (err) {
+                console.log(err)
             }
 
+            console.log("Exited playlist try/catch.")
+
             try {
+                console.log("Entering connection builder")
                 const connection = discordVoice.joinVoiceChannel(
                     {
                         channelId: voiceChannel,
                         guildId: interaction.guild.id,
                         adapterCreator: interaction.guild.voiceAdapterCreator
                     });
+                console.log("Created connection")
                 const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
                     const newUdp = Reflect.get(newNetworkState, 'udp');
                     clearInterval(newUdp?.keepAliveInterval);
                 }
+                console.log("Created stateChangeHandler")
                 connection.on('stateChange', (oldState, newState) => {
                     Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
                     Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
                 });
                 queueConstructor.connection = connection;
+                console.log("set connection")
                 client.queue = queue;
+                console.log("set queue")
                 videoPlayer(client, message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
             } catch (err) {
                 queue.delete(interaction.guild.id);
@@ -474,7 +490,7 @@ module.exports = {
                     .setDescription("There was an error connecting")
                     .setColor("#0099E1")
                 await interaction.send({embeds: [embed]});
-                throw err;
+                console.log(err)
             }  
         } else {
             // push song item regardless
