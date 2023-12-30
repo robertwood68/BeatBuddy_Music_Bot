@@ -24,7 +24,7 @@ for(const handler of handlers){
 
 // logs the bot into discord by processing the bot token from the enviornment variable file ".env"
 client.login(`${process.env.BOT_TOKEN}`);
-client.on("error", () => {client.login(process.env.BOT_TOKEN)});
+client.on("error", () => {`${client.login(process.env.BOT_TOKEN)}`});
 
 // below is the code to show which version of discord.js is installed
 // console.log(`Discord.js version is ${require("discord.js/package.json").version}`)
