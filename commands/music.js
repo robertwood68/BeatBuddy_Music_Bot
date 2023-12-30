@@ -3,24 +3,35 @@
  *
  * @author Robert Wood
  */
+// import Discord libraries
+const Discord = require('discord.js');
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const discordVoice = require('@discordjs/voice');
+
+// import libraries for pulling from YouTube and store cookie
 const videoPlayer = require("../videoPlayer/videoPlayer");
 const ytdl = require('ytdl-core');
 const ytSearch = require('yt-search');
 const ytpl = require('ytpl');
-const Discord = require('discord.js');
+const ytCookie = `YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=f4=4000000&tz=America.New_York&f6=40000000&f5=30000; LOGIN_INFO=AFmmF2swRgIhAIQraz_zdWZVz9vwUyyBB9K5QypB_EWEsc_Rx83WjCNmAiEApvQg-E8fTqw1pL9zN9gDTKN22_2TSOl7Lq7cIzWr2zk:QUQ3MjNmelRtb1EzNjNscnk2UEZrTkZBQzI5aGZfRWZ1c18yZmVxeXkyNjJQRkNDZEg3eUpEV21iemstWFNoTUpybWZCZC1KX19pNHhRNEJFLWU4UzZHQUExNmNFWVYyb1c1R0ljYnh3ZUFnRk9IczRSRDlDd0puQUVYYkt1SEx4eVNsenVNdkUtVlVFeEhJb19kR2VQdm95TmI4Z1VXbWVR; SID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCwBYfU6ndCAAULaE3YPKoMw.; __Secure-1PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCUBGT4tx4uvMTDfqbGO1mpw.; __Secure-3PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCDfxu5lphiZVSuOBUYo97aA.; HSID=AIcOpsLqfP1ptA6Gs; SSID=A2fbCMZwMVPQQ9C9d; APISID=QItfrcR2Iva__JgM/AXGikIg8xnITdlKks; SAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-1PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-3PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; SIDCC=AJi4QfF50GVGxwQ1WWt-YRnRwuzdkn8blXK9BmethVZOprvx6A9b3RHX5y0BxDYv-1Px06H5FEc; __Secure-3PSIDCC=AJi4QfEhzm6JuecJt3eC_Qajm6dL08-DeHE2l_ZXsiuYLeJxSnMg-2nzD19p3BbcWJrkiii034w`;
+
+// import libraries for pulling data from Spotify links
 const fetch = require('isomorphic-unfetch');
+const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
+
+// import libraries for scraping SoundCloud website from links
 const soundcloud = require('soundcloud-scraper');
 const { SoundCloud } = require("scdl-core");
-const scdl = new SoundCloud();
 SoundCloud.connect();
 SoundCloud.client_id = (process.env.SOUNDCLOUD_API_KEY);
 const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
-const { getData, getPreview, getTracks } = require('spotify-url-info')(fetch);
+
+// create the map that will serve as a list of all queues
 const queue = new Map();
-const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=f4=4000000&tz=America.New_York&f6=40000000&f5=30000; LOGIN_INFO=AFmmF2swRgIhAIQraz_zdWZVz9vwUyyBB9K5QypB_EWEsc_Rx83WjCNmAiEApvQg-E8fTqw1pL9zN9gDTKN22_2TSOl7Lq7cIzWr2zk:QUQ3MjNmelRtb1EzNjNscnk2UEZrTkZBQzI5aGZfRWZ1c18yZmVxeXkyNjJQRkNDZEg3eUpEV21iemstWFNoTUpybWZCZC1KX19pNHhRNEJFLWU4UzZHQUExNmNFWVYyb1c1R0ljYnh3ZUFnRk9IczRSRDlDd0puQUVYYkt1SEx4eVNsenVNdkUtVlVFeEhJb19kR2VQdm95TmI4Z1VXbWVR; SID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCwBYfU6ndCAAULaE3YPKoMw.; __Secure-1PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCUBGT4tx4uvMTDfqbGO1mpw.; __Secure-3PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCDfxu5lphiZVSuOBUYo97aA.; HSID=AIcOpsLqfP1ptA6Gs; SSID=A2fbCMZwMVPQQ9C9d; APISID=QItfrcR2Iva__JgM/AXGikIg8xnITdlKks; SAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-1PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-3PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; SIDCC=AJi4QfF50GVGxwQ1WWt-YRnRwuzdkn8blXK9BmethVZOprvx6A9b3RHX5y0BxDYv-1Px06H5FEc; __Secure-3PSIDCC=AJi4QfEhzm6JuecJt3eC_Qajm6dL08-DeHE2l_ZXsiuYLeJxSnMg-2nzD19p3BbcWJrkiii034w";
+
+// begin module exports
 module.exports = {
+    // command fields setup
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Plays the requested song in the voice channel or adds it to the queue')
@@ -31,6 +42,8 @@ module.exports = {
             .setDescription('Provide a song link, playlist link or keywords for a youtube search')
             .setRequired(true)
         ),
+
+    // command execution setup
     async execute(client, interaction) {
         // create songQueue variable for use in external command
         const message = interaction;
@@ -40,13 +53,13 @@ module.exports = {
         const voiceChannel = interaction.member.voice.channelId;
         let txtchannel = interaction.channel;
 
-
         // create the queue
         const serverQueue = queue.get(interaction.guild.id);
         queue.set(interaction.guild.id, serverQueue);
+
         // song or link requested
         let input = await interaction.options.getString('link-or-keywords');
-        console.log(input)
+        console.log(`Song Requested: ${input}`)
 
         // FailCases:
         if (!voiceChannel) {
@@ -97,7 +110,7 @@ module.exports = {
         } 
         else if (input.includes("https://") && input.includes('spotify') && !input.includes('playlist') && !input.includes('album')) { // Sp.Song
             try{ 
-                // retrive the data for the song from the spotify link
+                // retrieve the data for the song from the spotify link
                 let data = await getPreview(input).then(function(data) {
                     return data;
                 });
@@ -117,10 +130,10 @@ module.exports = {
                 const responseEmbed = new EmbedBuilder()
                     .setColor("#0099E1")
                     .setDescription("Retrieving Song Info...");
-                // response embed
                 await txtchannel.send({embeds: [responseEmbed]});
                 
                 const video = await videoFinder(data.title + " " + data.artist + "lyrics");
+
                 if (video) {
                     // set specific song information
                     song = { title: title, url: video.url, artist: artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username}
@@ -130,13 +143,9 @@ module.exports = {
                         .setAuthor({name: "Error"})
                         .setColor("#0099E1")
                         .setDescription("Couldn't find the requested song");
-
-                    // return embed
                     return await interaction.send({embeds: [responseEmbed]});
                 }
-            } catch (err) {
-                console.log(err)
-            }
+            } catch (err) { console.log(err) }
         } 
         else if (input.includes("https://") && input.includes('spotify') && !input.includes('playlist') && input.includes('album')) { 
             try {
@@ -157,15 +166,7 @@ module.exports = {
                 // get owner of the playlist
                 const albumArtist = albumData.subtitle;
 
-                // searching embed
-                // const responseEmbed = new EmbedBuilder()
-                //     .setAuthor('Fetching Album')
-                //     .setColor("#0099E1")
-                //     .setDescription("Please wait");
-                // // response embed
-                // await interaction.send({embeds: [responseEmbed]});
-
-                // function to handle youtube searches
+                // function to handle YouTube searches
                 const videoFinder = async (query) => {
                     const videoResult = await ytSearch(query);
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
@@ -188,7 +189,7 @@ module.exports = {
                         let song = { title: track.name, url: video.url, artist: track.artist, time: video.duration.timestamp, date: albumData.releaseDate, thumbnail: albumData.coverArt.sources[0].url, requester: interaction.user.username};
                         videos.push(song);
                     }
-                };
+                }
                 
                 let str = "";
                 str += `**${albumName}** has been added \n`;
@@ -229,15 +230,7 @@ module.exports = {
                 // get owner of the playlist
                 const owner = playlistData.subtitle;
 
-                // // if searching embed
-                // const responseEmbed = new EmbedBuilder()
-                //     .setAuthor('Fetching Playlist Data')
-                //     .setColor("#0099E1")
-                //     .setDescription("Please wait");
-                // // response embed
-                // await interaction.send({embeds: [responseEmbed]});
-
-                // function to handle youtube searches
+                // function to handle YouTube searches
                 const videoFinder = async (query) => {
                     const videoResult = await ytSearch(query);
                     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
@@ -256,7 +249,7 @@ module.exports = {
                     // if there is a video, create the song object and add its details, then push it to the videos array.
                     if (video) {
                         // set specific song information
-                        // retrive the data for the song from the spotify link
+                        // retrieve the data for the song from the spotify link
                         let data = await getPreview(input).then(function(data) {
                             return data;
                         });
@@ -270,7 +263,7 @@ module.exports = {
                         let song = { title: track.name, url: video.url, artist: track.artist, time: video.duration.timestamp, date: date, thumbnail: thumbnail, requester: interaction.user.username};
                         videos.push(song);
                     }
-                };
+                }
                 
                 let str = "";
                 str += `**${playlistName}** has been added \n`;
@@ -322,9 +315,7 @@ module.exports = {
 
                 // push the song to the videos queue
                 videos.push(song);
-            } catch (err) {
-                console.log(err);
-            }
+            } catch (err) { console.log(err); }
         }
         else if (
             (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && input.includes("?") && !input.includes("in=")) 
@@ -376,31 +367,27 @@ module.exports = {
                     .setDescription(str + "\n" + "Owner: **" + owner + "**")
                     .setColor("#0099E1")
                 await txtchannel.send({embeds: [embed]});
-            } catch (err) {
-                console.log(err);
-            }
+            } catch (err) { console.log(err); }
         }
         else {
-            // if the song is not a URL, then use keywords to find that song on youtube through a search query.
+            // if the song is not a URL, then use keywords to find that song on YouTube through a search query.
             const videoFinder = async (query) => {
                 const videoResult = await ytSearch(query);
                 return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
             }
 
-            // add the info pulled from youtube to the song variable
+            // add the info pulled from YouTube to the song variable
             const video = await videoFinder(input);
             if (video) {
                 // set specific song information
-                song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "Couldn't retrive date", thumbnail: video.thumbnail, requester: interaction.user.username};
-                console.log("Found the requested song!");
+                song = { title: video.title, url: video.url, artist: video.author.name, time: video.duration.timestamp, date: "Couldn't retrieve date", thumbnail: video.thumbnail, requester: interaction.user.username};
+                console.log(`Song Retrieved: ${song.title}`);
             } else {
                 // if no results, send error message
                 const responseEmbed = new EmbedBuilder()
                     .setAuthor({name: "Error"})
                     .setColor("#0099E1")
                     .setDescription("Couldn't find the requested song");
-
-                // return embed
                 return await txtchannel.send({embeds: [responseEmbed]});
             }
         }
@@ -419,69 +406,51 @@ module.exports = {
             queue.set(interaction.guild.id, queueConstructor);
             
             // push playlist items into queue if playlist is requested
-            console.log("Entering playlist try/catch...")
             try {
                  // push the song item regardless
                 queueConstructor.songs.push(song);
                 
                 if (ytpl.validateID(input)) {
                     queueConstructor.songs.push(song);
-                    console.log("made it in validate")
-                    for (i = 0; i <= videos.length - 1; i++) {
+                    for (let i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
-                    // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
                 } else if (input.includes('spotify') && input.includes('album')) {
-                    console.log("made it in spotify album")
-                    for (i = 0; i <= videos.length - 1; i++) {
+                    for (let i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
-                    // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
                 } else if (input.includes('spotify') && input.includes('playlist')) {
-                    console.log("made it in spotify playlist")
-                    for (i = 0; i <= videos.length - 1; i++) {
+                    for (let i = 0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
-                    // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
                 } else if ((input.includes("https://") && input.includes('soundcloud') && input.includes('sets')) || (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && !input.includes("?"))) {
-                    console.log("made it in soundcloud sets")
-                    for (i=0; i <= videos.length - 1; i++) {
+                    for (let i=0; i <= videos.length - 1; i++) {
                         queueConstructor.songs.push(videos[i]);
                     }
-                    // remove the undefined push from song info outside of loop
                     queueConstructor.songs.shift();
                 }
-            } catch (err) {
-                console.log(err)
-            }
-
-            console.log("Exited playlist try/catch.")
+            } catch (err) { console.log(err) }
 
             try {
-                console.log("Entering connection builder")
                 const connection = discordVoice.joinVoiceChannel(
                     {
                         channelId: voiceChannel,
                         guildId: interaction.guild.id,
                         adapterCreator: interaction.guild.voiceAdapterCreator
                     });
-                console.log("Created connection")
                 const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
                     const newUdp = Reflect.get(newNetworkState, 'udp');
                     clearInterval(newUdp?.keepAliveInterval);
                 }
-                console.log("Created stateChangeHandler")
                 connection.on('stateChange', (oldState, newState) => {
                     Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
                     Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
                 });
                 queueConstructor.connection = connection;
-                console.log("set connection")
                 client.queue = queue;
-                console.log("set queue")
                 videoPlayer(client, message, message.guild, queueConstructor.songs[0], queue, queueConstructor.connection);
             } catch (err) {
                 queue.delete(interaction.guild.id);
@@ -494,30 +463,31 @@ module.exports = {
             }  
         } else {
             // push song item regardless
-            console.log("made it here")
             serverQueue.songs.push(song);
 
             // if playlist is added after the serverQueue has been made
-            console.log("made it to validate")
             if (ytpl.validateID(input)) {
-                console.log("made it here")
                 // get playlist name
                 const playlistName = (await ytpl(input)).title;
+
                 // set playlist thumbnail as server image
                 const playlistThumbnail = interaction.guild.iconURL();
-                // get index of undefine push of song above for removal
+
+                // get index of undefined push of song above for removal
                 const elementToRemove = serverQueue.songs.length-1;
+
                 // remove the undefined song push from earlier
                 serverQueue.songs.splice(elementToRemove, elementToRemove);
 
-                // for each video, push it to the serverqueue
-                for (i = 0; i <= videos.length - 1; i++) {
+                // for each video, push it to the server queue
+                for (let i = 0; i <= videos.length - 1; i++) {
                     serverQueue.songs.push(videos[i]);
                 }
 
                 // string to set as description in embed
                 let str = "";
                 str += `**Playlist Added To Queue:**\n ${playlistName}`;
+
                 // create embed show that the playlist was added to the queue
                 const embed = new EmbedBuilder()
                     .setThumbnail(playlistThumbnail)
@@ -534,7 +504,7 @@ module.exports = {
                 serverQueue.songs.splice(remIndex, remIndex);
 
                 // for each song, push it to the serverQueue
-                for (i = 0; i <= videos.length - 1; i++) {
+                for (let i = 0; i <= videos.length - 1; i++) {
                     serverQueue.songs.push(videos[i]);
                 }
             } else if (input.includes('spotify') && input.includes('album')) {
@@ -545,7 +515,7 @@ module.exports = {
                 serverQueue.songs.splice(remIndex, remIndex);
 
                 // for each song, push it to the serverQueue
-                for (i = 0; i <= videos.length - 1; i++) {
+                for (let i = 0; i <= videos.length - 1; i++) {
                     serverQueue.songs.push(videos[i]);
                 }
             } else if ((input.includes("https://") && input.includes('soundcloud') && input.includes('sets')) || (input.includes("https://") && input.includes('soundcloud') && input.includes('sets') && !input.includes("?"))) {
@@ -555,7 +525,7 @@ module.exports = {
                 serverQueue.songs.splice(remIndex, remIndex);
 
                 // for each song, push it to the serverQueue
-                for (i = 0; i <= videos.length - 1; i++) {
+                for (let i = 0; i <= videos.length - 1; i++) {
                     serverQueue.songs.push(videos[i]);
                 }
             } else {
@@ -567,21 +537,8 @@ module.exports = {
                     .setThumbnail(song.thumbnail)
                     .setDescription(str)
                     .setColor("#0099E1")
-                // return a message embed saying which song was added to the queue
                 await txtchannel.send({embeds: [embed]});
-                return;
             }
         }
-
-        // else if (cmd === 'join') joinChannel(message, message.guild, queue);
-        // else if (cmd === 'skipto' || cmd === 'st') skipTo(message, args, serverQueue, message.guild, songQueue);
-        // else if (cmd === 'leave' || cmd === 'stop') leaveChannel(message, serverQueue);
-        // else if (cmd === 'songinfo' || cmd === 'song' || cmd === 'info' || cmd === 'i') songInfo(message, message.guild, queue);
-        // else if (cmd === 'shuffle') shuffle(message, message.guild, queue);
-        // else if (cmd === 'remove' || cmd === 'rem') remove(message, args, serverQueue, message.guild, queue);
-        // else if (cmd === 'qlength' || cmd === 'queuelength' || cmd === 'length') queueLength(message, message.guild, queue);
-        // else if (cmd === 'loop' || cmd === 'repeat') loopSong (message, message.guild, queue);
-        // else if (cmd === 'loopAll' || cmd === 'loopall' || cmd === 'repeatAll' || cmd === 'repeatall') loopAll (message, message.guild, queue);
-        // else if (cmd == 'move' || cmd == 'm') moveSong(message, args, serverQueue, message.guild, queue);
     }
 }

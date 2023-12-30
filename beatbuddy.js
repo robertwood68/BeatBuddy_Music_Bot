@@ -20,10 +20,10 @@ client.events = new Collection();
 const handlers = ['command_handler', 'event_handler'];
 for(const handler of handlers){
     require(`./handlers/${handler}`)(client);
-};
+}
 
 // logs the bot into discord by processing the bot token from the enviornment variable file ".env"
-client.login(process.env.BOT_TOKEN);
+client.login(`${process.env.BOT_TOKEN}`);
 client.on("error", () => {client.login(process.env.BOT_TOKEN)});
 
 // below is the code to show which version of discord.js is installed
