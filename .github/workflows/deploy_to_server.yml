@@ -1,4 +1,4 @@
-name: BeatBuddy CI/CD
+name: redeployment
 
 on:
   push:
