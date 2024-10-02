@@ -13,6 +13,7 @@
     "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "^1.5.0",
     "@discordjs/voice": "^0.14.0",
+    "@distube/ytdl-core": "^4.14.4",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.0",
     "ffmpeg-static": "^5.2.0",
@@ -20,7 +21,7 @@
     "fs": "^0.0.1-security",
     "isomorphic-unfetch": "^3.1.0",
     "libsodium-wrappers": "^0.7.10",
-    "npm": "^10.2.3",
+    "npm": "^10.8.3",
     "nvm": "^0.0.4",
     "opusscript": "^0.0.8",
     "play-dl": "^1.8.8",
@@ -30,8 +31,8 @@
     "soundcloud.ts": "^0.5.2",
     "spotify-url-info": "^3.2.6",
     "youtube": "^0.1.0",
+    "youtube-dl-exec": "^3.0.10",
     "yt-search": "^2.10.3",
-    "ytdl-core": "^4.9.1",
     "ytpl": "^2.3.0",
     "ytsearch": "^1.0.4"
   }

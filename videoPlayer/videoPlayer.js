@@ -1,18 +1,19 @@
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core'); // Updated import statement
 const ytpl = require('ytpl');
 const soundcloud = require('soundcloud-scraper');
 const scClient = new soundcloud.Client(process.env.SOUNDCLOUD_API_KEY);
-const ytCookie = "YSC=xrOrLy_mswk; VISITOR_INFO1_LIVE=fTo0vURBlEQ; wide=0; PREF=f4=4000000&tz=America.New_York&f6=40000000&f5=30000; LOGIN_INFO=AFmmF2swRgIhAIQraz_zdWZVz9vwUyyBB9K5QypB_EWEsc_Rx83WjCNmAiEApvQg-E8fTqw1pL9zN9gDTKN22_2TSOl7Lq7cIzWr2zk:QUQ3MjNmelRtb1EzNjNscnk2UEZrTkZBQzI5aGZfRWZ1c18yZmVxeXkyNjJQRkNDZEg3eUpEV21iemstWFNoTUpybWZCZC1KX19pNHhRNEJFLWU4UzZHQUExNmNFWVYyb1c1R0ljYnh3ZUFnRk9IczRSRDlDd0puQUVYYkt1SEx4eVNsenVNdkUtVlVFeEhJb19kR2VQdm95TmI4Z1VXbWVR; SID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCwBYfU6ndCAAULaE3YPKoMw.; __Secure-1PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCUBGT4tx4uvMTDfqbGO1mpw.; __Secure-3PSID=JQjUJtTY7UFXuR5kdUY6ri1X8a4OTlfiWTAC9Jshq1z3htzCDfxu5lphiZVSuOBUYo97aA.; HSID=AIcOpsLqfP1ptA6Gs; SSID=A2fbCMZwMVPQQ9C9d; APISID=QItfrcR2Iva__JgM/AXGikIg8xnITdlKks; SAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-1PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; __Secure-3PAPISID=swzssEsQqdq2bLD3/A0gdEuiqhy0yyMuYk; SIDCC=AJi4QfF50GVGxwQ1WWt-YRnRwuzdkn8blXK9BmethVZOprvx6A9b3RHX5y0BxDYv-1Px06H5FEc; __Secure-3PSIDCC=AJi4QfEhzm6JuecJt3eC_Qajm6dL08-DeHE2l_ZXsiuYLeJxSnMg-2nzD19p3BbcWJrkiii034w";
+const ytCookie = "VISITOR_PRIVACY_METADATA=CgJVUxIEGgAgIw%3D%3D; __Secure-3PSID=g.a000oQhLjmcGoWO00UT2j8frE_OWPnlHLNezILGxRshuzbWGP35uRs5GuNB1fVcMkgymLK3LIwACgYKAZASARMSFQHGX2MirjlJBb2joxsWCK_DELaCuRoVAUF8yKrIA23yuBfpLNTVrSpEFXUd0076; __Secure-1PSIDTS=sidts-CjEBQlrA-Jwp_Oo3DFfpYxtox4qvoE8kx5P2K009qWzKJKsxXTOA7bmZSGad9eXMQizZEAA; SAPISID=VvuPQsVQczuGuzAO/ANkBEKeTdZTht_F_g; __Secure-1PSIDCC=AKEyXzV5XqhJJWlWhYq9MgNja0NWI2aYn3gE-xYzXoFFFnrCyves-msswZFN5aAWGkgzdxmU; SSID=AGDJBqXJ0OP3uMt96; __Secure-1PAPISID=VvuPQsVQczuGuzAO/ANkBEKeTdZTht_F_g; __Secure-1PSID=g.a000oQhLjmcGoWO00UT2j8frE_OWPnlHLNezILGxRshuzbWGP35u_vGarMFHYSsZRMB1sPVk1gACgYKAdESARMSFQHGX2MiHgL1g3JRF2HtiUZhvQ6tSRoVAUF8yKrAQ7EBo8C2wIOlish2KA2U0076; __Secure-3PAPISID=VvuPQsVQczuGuzAO/ANkBEKeTdZTht_F_g; __Secure-3PSIDCC=AKEyXzUWo5boQ-T3t4V7VkA8fRqAaZ3KreyHljUDPuvmX3uyHPOuKmWaDjY_vefUXVqHExO8RoQ; __Secure-3PSIDTS=sidts-CjEBQlrA-Jwp_Oo3DFfpYxtox4qvoE8kx5P2K009qWzKJKsxXTOA7bmZSGad9eXMQizZEAA; LOGIN_INFO=AFmmF2swRAIgXWGd8NzVvlEBMxk00POSBQInJ9YfBN6slY8hNIrbqHYCIDm64qqsDrrnGI8sc4Ge0at-kVIpFn2FLChpv6f0RguP:QUQ3MjNmekZKSVFIcGlET01tRFFpUUpGaTh6NW9yNE9UTzRMeWhWV3A1OWtLeXMtWnBna3FlS09iY2ZFMHZsRFF5S3R1YkZSUUdaUWphLUNVWEpJWTdLTVRibGkzVklZQ0lQTm9VRDlCX003OWp2UEZZZ1VWTmtNS1NIdHRaWk1hNDRnTWRGR0JtTGJOZ3l6dGlCSThXS1d3RGdtZHhrOUFR; PREF=f4=4000000&f6=40000000&tz=America.New_York";
 const {EmbedBuilder} = require("discord.js");
 const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
+
 /**
  * Configures the options for the music and plays the music in the voice channel.
- * 
- * FULLY FUNCTONAL
- * 
+ *
+ * FULLY FUNCTIONAL
+ *
  * @returns null if no song, or "Now playing ${song.title}" if the song is detected and found.
  */
- const videoPlayer = async (client, message, guild, song, queue, connection) => {
+const videoPlayer = async (client, message, guild, song, queue, connection) => {
     try {
         let songQueue = queue.get(guild.id);
         const voice = require('@discordjs/voice');
@@ -29,10 +30,21 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
         if (ytdl.validateURL(song.url) || ytpl.validateID(song.url)) {
             try {
                 const player = createAudioPlayer();
-                const stream = ytdl(song.url, {requestOptions: { headers: { cookie: ytCookie } }, filter: 'audioonly', highWaterMark: 1<<25 }); // audio options for stream
-                const music = createAudioResource(stream)
-                connection.subscribe(player)
-                player.play(music)
+                // audio options for stream
+                const options = {
+                    requestOptions: {
+                        headers: {
+                            cookie: ytCookie,
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                        }
+                    },
+                    filter: 'audioonly',
+                    highWaterMark: 1 << 20
+                }
+                const stream = await ytdl(song.url, options); // Updated stream handling
+                const music = createAudioResource(stream);
+                connection.subscribe(player);
+                player.play(music);
                 player.on('idle', () => {
                     songQueue.songs.shift();
                     videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
@@ -51,7 +63,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                 // return now playing embed
                 await message.channel.send({embeds: [responseEmbed]});
                 return;
-            } catch (err){
+            } catch (err) {
                 const responseEmbed = new EmbedBuilder()
                     .setAuthor({name: "Failure!"})
                     .setDescription("Unable to play the song.  Attempting to skip to the next one.")
@@ -71,9 +83,9 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                 const stream = await scClient.getSongInfo(song.url).then(function(data) {
                     return data.downloadProgressive();
                 });
-                const music = createAudioResource(stream)
-                connection.subscribe(player)
-                player.play(music)
+                const music = createAudioResource(stream);
+                connection.subscribe(player);
+                player.play(music);
                 player.on('idle', () => {
                     songQueue.songs.shift();
                     videoPlayer(client, message, guild, songQueue.songs[0], queue, connection);
@@ -89,7 +101,7 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
                     .setDescription(str)
                     .setThumbnail(song.thumbnail);
 
-                // // return now playing embed
+                // return now playing embed
                 await message.channel.send({embeds: [responseEmbed]});
                 return;
             } catch (err) {
@@ -115,8 +127,8 @@ const {createAudioPlayer, createAudioResource} = require('@discordjs/voice');
 
         // // return now playing embed
         try {
-            if (typeof message != 'undefined') {
-                if (typeof message.channel != 'undefined') {
+            if (typeof message !== 'undefined') {
+                if (typeof message.channel !== 'undefined') {
                     return await message.channel.send({embeds: [responseEmbed]});
                 }
             }
