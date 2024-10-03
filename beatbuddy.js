@@ -15,6 +15,10 @@ require('dotenv').config();
 // creates new collections to hold the commands and events
 client.commands = new Collection();
 client.events = new Collection();
+//FIX DEPLOY COMMANDS 
+console.clear()
+require('./deploy-commands');
+
 
 // for loop that provides the client and Discord variables to the command_handler and event_handler
 const handlers = ['command_handler', 'event_handler'];
