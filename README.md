@@ -1,6 +1,6 @@
 # BeatBuddy - Discord Music Bot
    
-   ![alt text](https://github.com/robertwood68/BeatBuddy_Music_Bot/blob/master/images/BB.png?raw=true)
+   ![alt text](https://github.com/robertwood68/BeatBuddy_Music_Bot/blob/master/images/BB.jpg?raw=true)
    
 **Update** As of now, BeatBuddy is being completely refactored to work in agreement with YouTube's copyright policy, and due to this the bot will be offline for a few weeks.  Stay tuned for updates on the bot as it'll be back up in no time!
 
