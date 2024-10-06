@@ -8,7 +8,7 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	execute(client) {
-		console.log('BeatBuddy reporting for duty!');
+		console.log('BeatBuddy successfully started');
         // sets the activity of the bot to how many servers it is currently in.
         client.user.setActivity(`over the music in ${client.guilds.cache.size} servers`, { type: ActivityType.Watching });
 		// Listener that clears the queue if manually disconnected by user.
@@ -25,8 +25,7 @@ module.exports = {
 				console.log(err);
 			}
 		});
-		// generates dependency report for djs voice
-		// const { generateDependencyReport } = require('@discordjs/voice');
-		// console.log(generateDependencyReport());
+		// set the profile avatar
+		/* client.user.setAvatar('pathToImage'); */
 	},
 };

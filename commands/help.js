@@ -20,8 +20,5 @@ module.exports = {
         const str3 = `**NEWS:**  BeatBuddy's commands have been fully reworked and converted to Slash Commands!\n\n**Disclaimer:**  BeatBuddy can play songs from YouTube, Spotify, and SoundCloud links, YouTube keyword searches, along with links for YouTube playlists, YouTube Mixes, Spotify playlists, and SoundCloud playlists.\n\n**WARNING:**  If a YouTube Mix is requested, the mix will be added to the queue as a single video of the songs.  Links from any audio provider besides YouTube, Spotify, or SoundCloud will not be added or played.\n\n**Thanks for the support, now enjoy your time with BeatBuddy!**\n ~ Rob Wood`;
 
         interaction.reply({embeds: [responseEmbed1.setDescription(str1), responseEmbed2.setDescription(str2), responseEmbed3.setDescription(str3)]})
-
-        // code to easily change the bots avatar -- Image must be in the top level of the project.
-        /* client.user.setAvatar('BB.JPG'); console.log(client.user.setAvatar('BB.JPG')); */
     }
 }

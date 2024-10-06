@@ -26,7 +26,4 @@ for(const handler of handlers){
 client.login(`${process.env.BOT_TOKEN}`);
 client.on("error", () => {`${client.login(process.env.BOT_TOKEN)}`});
 
-// below is the code to show which version of discord.js is installed
-// console.log(`Discord.js version is ${require("discord.js/package.json").version}`)
-
 module.exports = {client};
