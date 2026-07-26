@@ -41,7 +41,7 @@ jobs:
     steps:
       - name: Trigger Komodo Deploy
         run: |
-          curl -s --max-time 10 -X POST http://${{ secrets.SERVER_HOST }}:${{ secrets.PORT }}/execute \
+          curl -s --max-time 10 -X POST ${{ secrets.PROTO }}://${{ secrets.SERVER_HOST }}/execute \
             -H "X-Api-Key: ${{ secrets.KOMODO_API_KEY }}" \
             -H "X-Api-Secret: ${{ secrets.KOMODO_API_SECRET }}" \
             -H "Content-Type: application/json" \
